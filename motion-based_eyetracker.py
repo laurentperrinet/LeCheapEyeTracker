@@ -183,7 +183,6 @@ if __name__ == "__main__":
 
     bigeye8B = cv.CreateImage (cv.GetSize(bigeye), 8, 3)
 #     img8B = cv.CreateImage (cv.GetSize(webcam), cv.IPL_DEPTH_8U, 1)
-#     gray = cv.CreateImage(cv.GetSize(bigeye), cv.IPL_DEPTH_32F, 1)
 # 
     timestamp, angle, weight = [], [], []
     while True:

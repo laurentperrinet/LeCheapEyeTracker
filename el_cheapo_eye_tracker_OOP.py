@@ -10,18 +10,18 @@ requires opencv svn + new python api
 CAMERAID=-1 # -1 for auto, -2 for video
 HAARCASCADE="/opt/local/share/opencv/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
 # MOVIE="/home/gijs/Work/sonic-gesture/sonic-gesture/data/movies/heiligenacht.mp4" # what movie to read
-#MOVIE="/home/gijs/Work/sonic-vision/data/wayne_cotter.mp4"
+MOVIE="/home/gijs/Work/sonic-vision/data/wayne_cotter.mp4"
 STORE=False # write output video?
 OUTPUT="testje.mp4" # where to write output video
 OSC_PORT = 6666 # where to send the osc data
 
 # Internal parameters
-THRESH = 80 # starting treshhold
+THRESH = 120 # starting treshhold
 FPS = 25 # target FPS
 HUEBINS = 30 # how many bins for hue histogram
 SATBINS = 32 # how many bins for saturation histogram
 XWINDOWS = 3 # how many windows on x axe
-WORKING_HEIGHT = 200 # size of image to work with, 300 is okay
+WORKING_HEIGHT = 400 # size of image to work with, 300 is okay
 FACE_BORDER = 0.2 # border of face to cut of. 0.2 is 60% of face remaining
 
 
@@ -29,7 +29,6 @@ import cv
 import time
 import sys
 import math
-import osc
 
 
 
@@ -55,36 +54,13 @@ def hue_histogram_as_image(hist):
     return histimg
 
 
-class Source:
-    def __init__(self, id, flip=True):
-        self.flip = flip
-        if id == -2:
-            self.capture = cv.CaptureFromFile(MOVIE)
-        else:
-            self.capture = cv.CaptureFromCAM(id)
 
-    def print_info(self):
-        for prop in [ cv.CV_CAP_PROP_POS_MSEC, cv.CV_CAP_PROP_POS_FRAMES,
-                cv.CV_CAP_PROP_POS_AVI_RATIO, cv.CV_CAP_PROP_FRAME_WIDTH,
-                cv.CV_CAP_PROP_FRAME_HEIGHT, cv.CV_CAP_PROP_FPS,
-                cv.CV_CAP_PROP_FOURCC, cv.CV_CAP_PROP_BRIGHTNESS,
-                cv.CV_CAP_PROP_CONTRAST, cv.CV_CAP_PROP_SATURATION,
-                cv.CV_CAP_PROP_HUE]:
-            print cv.GetCaptureProperty(self.capture, prop)
+from grabbing import Source
 
-    def grab_frame(self):
-        self.frame = cv.QueryFrame(self.capture)
-        if not self.frame:
-            print "can't grap frame, or end of movie. Bye bye."
-            sys.exit(2)
-        if self.flip:
-            cv.Flip(self.frame, None, 1)
-        return self.frame
- 
 
 class GetHands:
     def __init__(self):
-        osc.init()
+
         self.source = Source(CAMERAID)
         #self.source.print_info()
         self.threshold_value = THRESH
@@ -290,13 +266,13 @@ class GetHands:
     def make_sound(self, limbs):
         """ translate limb positions to osc signals """
         [left_hand, head, right_hand] = limbs
-        if left_hand:
-            left = 100 - int(left_hand[1][1] / self.smallheight * 100)
-            osc.sendMsg("/left", [left], "127.0.0.1", OSC_PORT)
-        if right_hand:
-            right = 100 - int(right_hand[1][1] / self.smallheight * 100)
-            osc.sendMsg("/right", [right], "127.0.0.1", OSC_PORT)
-        
+#        if left_hand:
+#            left = 100 - int(left_hand[1][1] / self.smallheight * 100)
+#            osc.sendMsg("/left", [left], "127.0.0.1", OSC_PORT)
+#        if right_hand:
+#            right = 100 - int(right_hand[1][1] / self.smallheight * 100)
+#            osc.sendMsg("/right", [right], "127.0.0.1", OSC_PORT)
+#        
 
     def combine_images(self, images):
         """ render a list of images into one opencv frame """
