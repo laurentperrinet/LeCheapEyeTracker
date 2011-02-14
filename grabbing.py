@@ -51,6 +51,27 @@ class Source:
         if self.flip:
             cv.Flip(self.frame, None, 1)
         return self.frame
+# 
+#FindExtrinsicCameraParams2¶
+#
+#Comments from the Wiki
+#
+#FindExtrinsicCameraParams2(objectPoints, imagePoints, cameraMatrix, distCoeffs, rvec, tvec, useExtrinsicGuess=0) → None¶
+#
+#    Finds the object pose from the 3D-2D point correspondences
+#    Parameters:	
+#
+#        * objectPoints (CvMat) – The array of object points in the object coordinate space, 3xN or Nx3 1-channel, or 1xN or Nx1 3-channel, where N is the number of points.
+#        * imagePoints (CvMat) – The array of corresponding image points, 2xN or Nx2 1-channel or 1xN or Nx1 2-channel, where N is the number of points.
+#        * cameraMatrix (CvMat) – The input camera matrix A = \vecthreethree{fx}{0}{cx}{0}{fy}{cy}{0}{0}{1}
+#        * distCoeffs (CvMat) – The input vector of distortion coefficients (k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6]]) of 4, 5 or 8 elements. If the vector is NULL/empty, the zero distortion coefficients are assumed.
+#        * rvec (CvMat) – The output rotation vector (see Rodrigues2 ) that (together with tvec ) brings points from the model coordinate system to the camera coordinate system
+#        * tvec (CvMat) – The output translation vector
+#        * useExtrinsicGuess (int) – If true (1), the function will use the provided rvec and tvec as the initial approximations of the rotation and translation vectors, respectively, and will further optimize them.
+#
+#The function estimates the object pose given a set of object points, their corresponding image projections, as well as the camera matrix and the distortion coefficients. This function finds such a pose that minimizes reprojection error, i.e. the sum of squared distances between the observed projections imagePoints and the projected (using ProjectPoints2 ) objectPoints .
+#
+#The function’s counterpart in the C++ API is 
  
 def webcam(downscale=downscale):
 

@@ -79,7 +79,135 @@ def hue_histogram_as_image(hist):
 
 
 def detect_eyepair(image):
-    
+#    
+#class CvKalman¶
+#
+#Kalman filter state.
+#
+#    MP¶
+#        number of measurement vector dimensions
+#
+#    DP¶
+#        number of state vector dimensions
+#
+#    CP¶
+#        number of control vector dimensions
+#
+#    state_pre¶
+#        predicted state (x’(k)): x(k)=A*x(k-1)+B*u(k)
+#
+#    state_post¶
+#        corrected state (x(k)): x(k)=x’(k)+K(k)*(z(k)-H*x’(k))
+#
+#    transition_matrix¶
+#        state transition matrix (A)
+#
+#    control_matrix¶
+#        control matrix (B) (it is not used if there is no control)
+#
+#    measurement_matrix¶
+#        measurement matrix (H)
+#
+#    process_noise_cov¶
+#        process noise covariance matrix (Q)
+#
+#    measurement_noise_cov¶
+#        measurement noise covariance matrix (R)
+#
+#    error_cov_pre¶
+#        priori error estimate covariance matrix (P’(k)): P’(k)=A*P(k-1)*At + Q
+#
+#    gain¶
+#        Kalman gain matrix (K(k)): K(k)=P’(k)*Ht*inv(H*P’(k)*Ht+R)
+#
+#    error_cov_post¶
+#        posteriori error estimate covariance matrix (P(k)): P(k)=(I-K(k)*H)*P’(k)
+#
+#The structure CvKalman is used to keep the Kalman filter state. It is created by the CreateKalman function, updated by the KalmanPredict and KalmanCorrect functions . Normally, the structure is used for the standard Kalman filter (notation and the formulas below are borrowed from the excellent Kalman tutorial Welch95 )
+#
+#\begin{array}{l} x_k=A \cdot x_{k-1}+B \cdot u_k+w_k \\ z_k=H \cdot x_k+v_k \end{array}
+#
+#where:
+#
+#\begin{array}{l l} x_k \; (x_{k-1})& \text{state of the system at the moment \emph{k} (\emph{k-1})} \\ z_k & \text{measurement of the system state at the moment \emph{k}} \\ u_k & \text{external control applied at the moment \emph{k}} \end{array}
+#
+#w_k and v_k are normally-distributed process and measurement noise, respectively:
+#
+#\begin{array}{l} p(w) \sim N(0,Q) \\ p(v) \sim N(0,R) \end{array}
+#
+#that is,
+#
+#Q process noise covariance matrix, constant or variable,
+#
+#R measurement noise covariance matrix, constant or variable
+#
+#In the case of the standard Kalman filter, all of the matrices: A, B, H, Q and R are initialized once after the CvKalman structure is allocated via CreateKalman . However, the same structure and the same functions may be used to simulate the extended Kalman filter by linearizing the extended Kalman filter equation in the current system state neighborhood, in this case A, B, H (and, probably, Q and R) should be updated on every step.
+#CreateKalman¶
+#
+#Comments from the Wiki
+#
+#CreateKalman(dynam_params, measure_params, control_params=0) → CvKalman¶
+#
+#    Allocates the Kalman filter structure.
+#    Parameters:	
+#
+#        * dynam_params (int) – dimensionality of the state vector
+#        * measure_params (int) – dimensionality of the measurement vector
+#        * control_params (int) – dimensionality of the control vector
+#
+#The function allocates CvKalman and all its matrices and initializes them somehow.
+#KalmanCorrect¶
+#
+#Comments from the Wiki
+#
+#KalmanCorrect(kalman, measurement) → cvmat¶
+#
+#    Adjusts the model state.
+#    Parameters:	
+#
+#        * kalman (CvKalman) – Kalman filter object returned by CreateKalman
+#        * measurement (CvMat) – CvMat containing the measurement vector
+#
+#The function adjusts the stochastic model state on the basis of the given measurement of the model state:
+#
+#\begin{array}{l} K_k=P'_k \cdot H^T \cdot (H \cdot P'_k \cdot H^T+R)^{-1} \\ x_k=x'_k+K_k \cdot (z_k-H \cdot x'_k) \\ P_k=(I-K_k \cdot H) \cdot P'_k \end{array}
+#
+#where
+#z_k 	given measurement ( mesurement parameter)
+#K_k 	Kalman “gain” matrix.
+#
+#The function stores the adjusted state at kalman->state_post and returns it on output.
+#KalmanPredict¶
+#
+#Comments from the Wiki
+#
+#KalmanPredict(kalman, control=None) → cvmat¶
+#
+#    Estimates the subsequent model state.
+#    Parameters:	
+#
+#        * kalman (CvKalman) – Kalman filter object returned by CreateKalman
+#        * control (CvMat) – Control vector u_k , should be NULL iff there is no external control ( control_params =0)
+#
+#The function estimates the subsequent stochastic model state by its current state and stores it at kalman->state_pre :
+#
+#\begin{array}{l} x'_k=A x_{k-1} + B u_k \\ P'_k=A P_{k-1} A^T + Q \end{array}
+#
+#where
+#x'_k 	is predicted state kalman->state_pre ,
+#x_{k-1} 	is corrected state on the previous step kalman->state_post (should be initialized somehow in the beginning, zero vector by default),
+#u_k 	is external control ( control parameter),
+#P'_k 	is priori error covariance matrix kalman->error_cov_pre
+#P_{k-1} 	is posteriori error covariance matrix on the previous step kalman->error_cov_post (should be initialized somehow in the beginning, identity matrix by default),
+#
+#The function returns the estimated state.
+#KalmanUpdateByMeasurement¶
+#
+#Synonym for KalmanCorrect
+#KalmanUpdateByTime¶
+#
+#Synonym for KalmanPredict
+
 
 # 
 #     kalman = cv.CreateKalman(2, 1, 0)
