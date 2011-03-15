@@ -111,7 +111,7 @@ def grab(figname, downscale=downscale):
     if (figname==None) or not(os.path.isfile(figname)):
         if (capture==None): capture = webcam(downscale=downscale)
         # taking a snapshot 
-        img = cv.QueryFrame(capture)
+            img = cv.QueryFrame(capture)
         if not(figname==None):
             cv.SaveImage(figname, img)
     else:        
