@@ -1,14 +1,13 @@
-#!/usr/bin/python
-
+#/usr/bin/env python
+# -*- coding: utf8 -*-
 """
 
 eyepair_tracker.py : detecting the eye pair by their movement not their shape
 
 - grabbing.py : grabs the current frame
 - eyepair_tracker.py : detecting the eye pair by their movement not their shape
+- detect.py : fits a circle to get eyeball position
 
-- face-detect.py : fits an ellipse to get eyeball position
-- face-detect.py : infers eye position
 
 Laurent Perrinet, 2010. Credits: see http://www.incm.cnrs-mrs.fr/LaurentPerrinet/ElCheapoEyeTracker
 
@@ -24,9 +23,9 @@ requires opencv svn + new python api
 import numpy as np
 # CHANGE ME
 CAMERAID=-1 # -1 for auto, -2 for video
-HAARCASCADE_face="/opt/local/share/opencv/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
-HAARCASCADE_eyepair="/opt/local/share/opencv/haarcascades/haarcascade_mcs_eyepair_big.xml"
-HAARCASCADE_eye="/opt/local/share/opencv/haarcascades/haarcascade_eye.xml"
+HAARCASCADE_face="/usr/local/share/opencv/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
+HAARCASCADE_eyepair="/usr/local/share/opencv/haarcascades/haarcascade_mcs_eyepair_big.xml"
+HAARCASCADE_eye="/usr/local/share/opencv/haarcascades/haarcascade_eye.xml"
 # TODO: is there a haarcascade for the eyeball?
 
 # Parameters for haar detection
@@ -80,48 +79,48 @@ def hue_histogram_as_image(hist):
 
 def detect_eyepair(image):
 #    
-#class CvKalman¶
+#class CvKalman
 #
 #Kalman filter state.
 #
-#    MP¶
+#    MP
 #        number of measurement vector dimensions
 #
-#    DP¶
+#    DP
 #        number of state vector dimensions
 #
-#    CP¶
+#    CP
 #        number of control vector dimensions
 #
-#    state_pre¶
-#        predicted state (x’(k)): x(k)=A*x(k-1)+B*u(k)
+#    state_pre
+#        predicted state (x'(k)): x(k)=A*x(k-1)+B*u(k)
 #
-#    state_post¶
-#        corrected state (x(k)): x(k)=x’(k)+K(k)*(z(k)-H*x’(k))
+#    state_post
+#        corrected state (x(k)): x(k)=x'(k)+K(k)*(z(k)-H*x'(k))
 #
-#    transition_matrix¶
+#    transition_matrix
 #        state transition matrix (A)
 #
-#    control_matrix¶
+#    control_matrix
 #        control matrix (B) (it is not used if there is no control)
 #
-#    measurement_matrix¶
+#    measurement_matrix
 #        measurement matrix (H)
 #
-#    process_noise_cov¶
+#    process_noise_cov
 #        process noise covariance matrix (Q)
 #
-#    measurement_noise_cov¶
+#    measurement_noise_cov
 #        measurement noise covariance matrix (R)
 #
-#    error_cov_pre¶
-#        priori error estimate covariance matrix (P’(k)): P’(k)=A*P(k-1)*At + Q
+#    error_cov_pre
+#        priori error estimate covariance matrix (P'(k)): P'(k)=A*P(k-1)*At + Q
 #
-#    gain¶
-#        Kalman gain matrix (K(k)): K(k)=P’(k)*Ht*inv(H*P’(k)*Ht+R)
+#    gain
+#        Kalman gain matrix (K(k)): K(k)=P'(k)*Ht*inv(H*P'(k)*Ht+R)
 #
-#    error_cov_post¶
-#        posteriori error estimate covariance matrix (P(k)): P(k)=(I-K(k)*H)*P’(k)
+#    error_cov_post
+#        posteriori error estimate covariance matrix (P(k)): P(k)=(I-K(k)*H)*P'(k)
 #
 #The structure CvKalman is used to keep the Kalman filter state. It is created by the CreateKalman function, updated by the KalmanPredict and KalmanCorrect functions . Normally, the structure is used for the standard Kalman filter (notation and the formulas below are borrowed from the excellent Kalman tutorial Welch95 )
 #
@@ -142,31 +141,21 @@ def detect_eyepair(image):
 #R measurement noise covariance matrix, constant or variable
 #
 #In the case of the standard Kalman filter, all of the matrices: A, B, H, Q and R are initialized once after the CvKalman structure is allocated via CreateKalman . However, the same structure and the same functions may be used to simulate the extended Kalman filter by linearizing the extended Kalman filter equation in the current system state neighborhood, in this case A, B, H (and, probably, Q and R) should be updated on every step.
-#CreateKalman¶
+#CreateKalman
 #
 #Comments from the Wiki
 #
-#CreateKalman(dynam_params, measure_params, control_params=0) → CvKalman¶
-#
-#    Allocates the Kalman filter structure.
-#    Parameters:	
-#
-#        * dynam_params (int) – dimensionality of the state vector
-#        * measure_params (int) – dimensionality of the measurement vector
-#        * control_params (int) – dimensionality of the control vector
+#CreateKalman(dynam_params, measure_params, control_params=0) -> CvKalman
 #
 #The function allocates CvKalman and all its matrices and initializes them somehow.
-#KalmanCorrect¶
+#KalmanCorrect
 #
 #Comments from the Wiki
 #
-#KalmanCorrect(kalman, measurement) → cvmat¶
+#KalmanCorrect(kalman, measurement) -> cvmat
 #
 #    Adjusts the model state.
 #    Parameters:	
-#
-#        * kalman (CvKalman) – Kalman filter object returned by CreateKalman
-#        * measurement (CvMat) – CvMat containing the measurement vector
 #
 #The function adjusts the stochastic model state on the basis of the given measurement of the model state:
 #
@@ -174,20 +163,17 @@ def detect_eyepair(image):
 #
 #where
 #z_k 	given measurement ( mesurement parameter)
-#K_k 	Kalman “gain” matrix.
+#K_k 	Kalman gain matrix.
 #
 #The function stores the adjusted state at kalman->state_post and returns it on output.
-#KalmanPredict¶
+#KalmanPredict
 #
 #Comments from the Wiki
 #
-#KalmanPredict(kalman, control=None) → cvmat¶
+#KalmanPredict(kalman, control=None) -> cvmat
 #
 #    Estimates the subsequent model state.
 #    Parameters:	
-#
-#        * kalman (CvKalman) – Kalman filter object returned by CreateKalman
-#        * control (CvMat) – Control vector u_k , should be NULL iff there is no external control ( control_params =0)
 #
 #The function estimates the subsequent stochastic model state by its current state and stores it at kalman->state_pre :
 #
@@ -201,10 +187,10 @@ def detect_eyepair(image):
 #P_{k-1} 	is posteriori error covariance matrix on the previous step kalman->error_cov_post (should be initialized somehow in the beginning, identity matrix by default),
 #
 #The function returns the estimated state.
-#KalmanUpdateByMeasurement¶
+#KalmanUpdateByMeasurement
 #
 #Synonym for KalmanCorrect
-#KalmanUpdateByTime¶
+#KalmanUpdateByTime
 #
 #Synonym for KalmanPredict
 
@@ -255,14 +241,14 @@ def detect_eyepair(image):
     else:
         return None
 
-def crop_eyepair(highlight=True, display=None):
+def crop_eyepair(highlight=False, display=None):
     from grabbing import grab
     webcam = grab(None)
     rect_eye = detect_eyepair(webcam)
     img32F = cv.CreateImage(cv.GetSize(webcam), depth, 3)
     cv.ConvertScale(webcam, img32F)
     if not(rect_eye == None):
-        print rect_eye
+#        print rect_eye
         eye = cv.GetSubRect(img32F, (rect_eye[0], rect_eye[1], rect_eye[2], rect_eye[3]))
         eyepair = cv.CreateImage(eyepair_size, depth, 3)
         cv.Resize(eye, eyepair)

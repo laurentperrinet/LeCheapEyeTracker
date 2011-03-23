@@ -1,13 +1,13 @@
-#!/usr/bin/env python
-
+#/usr/bin/env python
+# -*- coding: utf8 -*-
 """
 
 grabbing.py : grabs the current frame
 
 - grabbing.py : grabs the current frame
 - eyepair_tracker.py : detecting the eye pair by their movement not their shape
-- detect.py : detecting the eye ball position by fitting an ellipse
-- face-detect.py : infers eye position
+- detect.py : fits a circle to get eyeball position
+
 
 Laurent Perrinet, 2010. Credits: see http://www.incm.cnrs-mrs.fr/LaurentPerrinet/ElCheapoEyeTracker
 
@@ -109,9 +109,10 @@ def webcam(downscale=downscale):
 def grab(figname, downscale=downscale):
     global capture
     if (figname==None) or not(os.path.isfile(figname)):
-        if (capture==None): capture = webcam(downscale=downscale)
+        if (capture==None): 
+            capture = webcam(downscale=downscale)
         # taking a snapshot 
-            img = cv.QueryFrame(capture)
+        img = cv.QueryFrame(capture)
         if not(figname==None):
             cv.SaveImage(figname, img)
     else:        

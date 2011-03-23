@@ -1,19 +1,16 @@
-#!/usr/bin/env python
-
+#/usr/bin/env python
+# -*- coding: utf8 -*-
 """
 
-detect.py : detecting the eye ball
+detect.py : fits a circle to get eyeball position
 
-- motion_tracker.py :  grabs the current frame
-- motion_tracker.py : gets the eyes position and crops the image
-- face-detect.py : fits an ellipse to get eyeball position
-- face-detect.py : infers eye position
+- grabbing.py : grabs the current frame
+- eyepair_tracker.py : detecting the eye pair by their movement not their shape
+- detect.py : fits a circle to get eyeball position
 
 Laurent Perrinet, 2010. Credits: see http://www.incm.cnrs-mrs.fr/LaurentPerrinet/ElCheapoEyeTracker
 
 $Id$
-
-voir  /Users/lup/Desktop/opencv/samples/python/fitellipse.py /Users/lup/Desktop/ElCheapoEyeTracker/sonic-gesture/pysonic-gesture/finder.py 
 
 """
 DEBUG = False
@@ -91,7 +88,7 @@ def contour_iterator(contour):
 #        * response approximated laplacian value for the keypoint
 #
 
-def fit_ellipse(eyepair_bw): 
+def fit_ellipse(eyepair_bw, slider_pos): 
     """
         This function finds contours, draws them and their approximation by ellipses.
         
@@ -137,26 +134,70 @@ def fit_ellipse(eyepair_bw):
     cv.ShowImage( "Eye", image04 )
 
 
+def fit_circle(eyepair_bw, slider_pos, display=True): 
+    """
+    cannyThreshold (TColor)
+    The higher threshold of the two passed to Canny edge detector (the lower one will be twice smaller).
+    
+    accumulatorThreshold (TColor)
+        Accumulator threshold at the center detection stage. The smaller it is, the more false circles may be detected. Circles, corresponding to the larger accumulator values, will be returned first
+    
+    dp (Double)
+        Resolution of the accumulator used to detect centers of the circles. For example, if it is 1, the accumulator will have the same resolution as the input image, if it is 2 - accumulator will have twice smaller width and height, etc
+    
+    minDist (Double)
+        Minimum distance between centers of the detected circles. If the parameter is too small, multiple neighbor circles may be falsely detected in addition to a true one. If it is too large, some circles may be missed
+    
+    minRadius (Int32)
+        Minimal radius of the circles to search for
+    
+    maxRadius (Int32)
+    Maximal radius of the circles to search for
+    """
+    
+
+    storage = cv.CreateMat(eyepair_bw.width, 1, cv.CV_32FC3)
+#    edges = cv.CreateImage(cv.GetSize(eyepair_bw), 8, 1)
+#    cv.Canny(eyepair_bw, edges, 10, 25, 3)
+#    (cannyThreshold, accumulatorThreshold, dp, minDist, minRadius, maxRadius)
+#HoughCircles(Mat& image, vector<Vec3f>& circles, int method, double dp, double minDist, double param1=100, double param2=100, int minRadius=0, int maxRadius=0)
+    cv.HoughCircles(eyepair_bw, storage, cv.CV_HOUGH_GRADIENT, 1, 1, slider_pos, 1, 1, 300)
+
+    if display:
+        print  storage.width
+        if storage.width>1 :  print  storage.width, (storage[0, 0], storage[0, 1]), storage[0, 2]
+        image04 = cv.CreateImage(cv.GetSize(eyepair_bw), 8, 3)
+        cv.Zero(image04)
+        for i in xrange(storage.width - 1):
+            radius = storage[i, 2]
+            center = (storage[i, 0], storage[i, 1])
+    
+            print (i, radius, center)
+    
+            cv.Circle(image04, center, radius, (0, 0, 255), 3, 8, 0)
+    
+#        cv.Circle(edges, center, radius, (0, 0, 255), 3, 8, 0)
+        cv.ShowImage( "Eye", image04 )
+
 if __name__ == "__main__":
 
 
 
     cv.NamedWindow("Eye", 1)
     cv.MoveWindow("Eye", 600 , 0)
-
-
-
     cv.DestroyWindow("detect_eyepair")
+    slider_pos = 70
+    cv.CreateTrackbar( "Threshold", "Eye", slider_pos, 255, fit_ellipse )
     
 
 #    try:
 #            if not(DEBUG): img = grab(None)
-
     while True:
         
         eyepair_bw = crop_eyepair(display=None)
-        
-        fit_ellipse(eyepair_bw)
+        if not(eyepair_bw==None):
+#            fit_ellipse(eyepair_bw, 1)
+            fit_circle(eyepair_bw, 1)
 
 #            key = cv.WaitKey(1)
 ##             if key == ord('r'): do_RF()
