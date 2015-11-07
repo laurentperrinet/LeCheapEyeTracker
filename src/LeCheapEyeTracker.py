@@ -49,16 +49,35 @@ class Camera:
         self.display = False
         self.ctime = []
         self.N = 0
+        self.face_cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/libs/vision/opencv/data/haarcascades/haarcascade_frontalface_default.xml')
+        self.eye_cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/libs/vision/opencv/data/haarcascades/haarcascade_eye.xml')
 
     def process_frame(self, frame, t0):
-        # some intensive computation...
-        #frame = cv2.medianBlur(frame, 19)
-        #frame = cv2.medianBlur(frame, 19)
+
+        faces = self.face_cascade.detectMultiScale(frame, 1.3, 5) # image[, scaleFactor[, minNeighbors[, flags[, minSize[, maxSize]
+        if len(faces) > 0:
+            (x,y,w,h) = faces[0]
+            roi_color = frame[y:y+h, x:x+w]
+            frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 2)
+            eyes = self.eye_cascade.detectMultiScale(roi_color, 1.1, 5, 4)
+            if len(eyes) == 2:
+                (ex,ey,ew,eh) = eyes[0]
+                eye_L = roi_color[ey:ey+eh, ex:ex+ew]
+                cv2.rectangle(roi_color, (ex,ey), (ex+ew,ey+eh), (0,255,0), 2)
+                (ex,ey,ew,eh) = eyes[1]
+                eye_R = roi_color[ey:ey+eh, ex:ex+ew]
+                cv2.rectangle(roi_color, (ex,ey), (ex+ew,ey+eh), (0,255,0), 2)
+                if eyes[0][0] < eyes[1][0]:
+                    eye_L, eye_R = eye_R, eye_L
         return frame, t0
 
+    def grab(self):
+        ret, frame = self.cap.read()
+        return frame
+    
     def run(self, T=10):
         start = clock()
-        while clock()-start <10.:
+        while clock()-start <T:
             while len(self.pending) > 0 and self.pending[0].ready():
                 res, t0 = self.pending.popleft().get()
                 self.latency.update(clock() - t0)
@@ -66,10 +85,10 @@ class Camera:
                     draw_str(res, (20, 40), "latency        :  %.1f ms" % (self.latency.value*1000))
                     draw_str(res, (20, 60), "frame interval :  %.1f ms" % (self.frame_interval.value*1000))
                     cv2.imshow('Webcam video', res)
-                self.ctime.append(time.time() - start)
+                self.ctime.append(clock() - start)
                 self.N += 1
             if len(self.pending) < self.threadn:
-                ret, frame = self.cap.read()
+                frame = self.grab()
                 t = clock()
                 self.frame_interval.update(t - self.last_frame_time)
                 self.last_frame_time = t
@@ -78,6 +97,7 @@ class Camera:
             ch = 0xFF & cv2.waitKey(1)
             if ch == 27:
                 self.close()
+        return frame
     
     def close(self):
         self.cap.release()
