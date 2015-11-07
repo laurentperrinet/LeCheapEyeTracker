@@ -36,8 +36,11 @@ class Camera:
         self.h, self.w = h, w
         import cv2
         self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.w)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.h)
+        self.DOWNSCALE = 1
+        W = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        H = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, W/self.DOWNSCALE)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H/self.DOWNSCALE)
 
         self.threadn = cv2.getNumberOfCPUs()
         self.pool = ThreadPool(processes = self.threadn)
