@@ -1,36 +1,87 @@
 #!/usr/bin/env python
 """
-Gijs Molenaar
-http://gijs.pythonic.nl
 
-requires opencv svn + new python api
+One main file.
+
 """
 
-# CHANGE ME
-CAMERAID=-1 # -1 for auto, -2 for video
-HAARCASCADE="/opt/local/share/opencv/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
-# MOVIE="/home/gijs/Work/sonic-gesture/sonic-gesture/data/movies/heiligenacht.mp4" # what movie to read
-MOVIE="/home/gijs/Work/sonic-vision/data/wayne_cotter.mp4"
-STORE=False # write output video?
-OUTPUT="testje.mp4" # where to write output video
-OSC_PORT = 6666 # where to send the osc data
+HAARCASCADE="~/pool/libs/vision/opencv/data/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
 
-# Internal parameters
-THRESH = 120 # starting treshhold
-FPS = 25 # target FPS
-HUEBINS = 30 # how many bins for hue histogram
-SATBINS = 32 # how many bins for saturation histogram
-XWINDOWS = 3 # how many windows on x axe
-WORKING_HEIGHT = 400 # size of image to work with, 300 is okay
-FACE_BORDER = 0.2 # border of face to cut of. 0.2 is 60% of face remaining
+from multiprocessing.pool import ThreadPool
+from collections import deque
+import cv2
+
+class StatValue:
+    def __init__(self, smooth_coef = 0.5):
+        self.value = None
+        self.smooth_coef = smooth_coef
+    def update(self, v):
+        if self.value is None:
+            self.value = v
+        else:
+            c = self.smooth_coef
+            self.value = c * self.value + (1.0-c) * v
+
+def clock():
+    return cv2.getTickCount() / cv2.getTickFrequency()
+
+def draw_str(dst, target, s):
+    x, y = target
+    cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
 
 
-import cv
-import time
-import sys
-import math
+class Camera:
+    def __init__(self, w=640, h=480):
+        self.h, self.w = h, w
+        import cv2
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.w)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.h)
 
+        self.threadn = cv2.getNumberOfCPUs()
+        self.pool = ThreadPool(processes = self.threadn)
+        self.pending = deque()
 
+        self.latency = StatValue()
+        self.frame_interval = StatValue()
+        self.last_frame_time = clock()        
+        self.display = False
+        self.ctime = []
+        self.N = 0
+
+    def process_frame(self, frame, t0):
+        # some intensive computation...
+        #frame = cv2.medianBlur(frame, 19)
+        #frame = cv2.medianBlur(frame, 19)
+        return frame, t0
+
+    def run(self, T=10):
+        start = clock()
+        while clock()-start <10.:
+            while len(self.pending) > 0 and self.pending[0].ready():
+                res, t0 = self.pending.popleft().get()
+                self.latency.update(clock() - t0)
+                if self.display:
+                    draw_str(res, (20, 40), "latency        :  %.1f ms" % (self.latency.value*1000))
+                    draw_str(res, (20, 60), "frame interval :  %.1f ms" % (self.frame_interval.value*1000))
+                    cv2.imshow('Webcam video', res)
+                self.ctime.append(time.time() - start)
+                self.N += 1
+            if len(self.pending) < self.threadn:
+                ret, frame = self.cap.read()
+                t = clock()
+                self.frame_interval.update(t - self.last_frame_time)
+                self.last_frame_time = t
+                task = self.pool.apply_async(self.process_frame, (frame.copy(), t))
+                self.pending.append(task)
+            ch = 0xFF & cv2.waitKey(1)
+            if ch == 27:
+                self.close()
+    
+    def close(self):
+        self.cap.release()
+        if self.display: cv2.destroyAllWindows()
 
 def hue_histogram_as_image(hist):
     """ Returns a nice representation of a hue histogram """
@@ -54,8 +105,6 @@ def hue_histogram_as_image(hist):
     return histimg
 
 
-
-from grabbing import Source
 
 
 class GetHands:
@@ -385,8 +434,10 @@ class GetHands:
 
 
 if __name__ == '__main__':
-    g = GetHands()
-    g.run()
+    start = time.time()
+    cam = ThreadSource()
+    ctime = cam.run()
+    cam.close()
 
 
 
