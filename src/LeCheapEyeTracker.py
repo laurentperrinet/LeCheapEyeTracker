@@ -23,16 +23,13 @@ class StatValue:
             c = self.smooth_coef
             self.value = c * self.value + (1.0-c) * v
 
-def clock():
-    return cv2.getTickCount() / cv2.getTickFrequency()
-
 def draw_str(dst, target, s):
     x, y = target
     cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv2.LINE_AA)
     cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
 
 
-class Camera:
+class LeCheapEyeTracker:
     def __init__(self, w=640, h=480):
         self.h, self.w = h, w
         import cv2
@@ -49,7 +46,7 @@ class Camera:
 
         self.latency = StatValue()
         self.frame_interval = StatValue()
-        self.last_frame_time = clock()        
+        self.last_frame_time = self.clock()
         self.display = False
         self.ctime = []
         self.eye_pos = []
@@ -57,6 +54,9 @@ class Camera:
         self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml')
         self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png')
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
+
+    def clock(self):
+        return cv2.getTickCount() / cv2.getTickFrequency()
 
     def process_frame(self, frame, t0):
         def get_just_one(image):
@@ -77,24 +77,24 @@ class Camera:
         return frame
     
     def run(self, T=10):
-        start = clock()
-        while clock()-start <T:
+        start = self.clock()
+        while self.clock()-start <T:
             if False:
                 while len(self.pending) > 0 and self.pending[0].ready():
                     res, t0 = self.pending.popleft().get()
                     self.eye_pos.append([res, t0])
-                    self.latency.update(clock() - t0)
-                    self.ctime.append(clock() - start)
+                    self.latency.update(self.clock() - t0)
+                    self.ctime.append(self.clock() - start)
                     self.N += 1
                 if len(self.pending) < self.threadn:
                     frame = self.grab()
-                    t = clock()
+                    t = self.clock()
                     self.frame_interval.update(t - self.last_frame_time)
                     self.last_frame_time = t
                     task = self.pool.apply_async(self.process_frame, (frame.copy(), t))
                     self.pending.append(task)
             else:
-                res, t0 = self.process_frame (frame.copy(), clock())
+                res, t0 = self.process_frame (frame.copy(), self.clock())
                 self.eye_pos.append([res, t0])
                 
             ch = 0xFF & cv2.waitKey(1)
@@ -168,7 +168,7 @@ class Canvas(app.Canvas):
         
     def on_timer(self, event):
         frame = self.cam.grab()
-        res, t0 = self.cam.process_frame (frame.copy(), clock())
+        res, t0 = self.cam.process_frame (frame.copy(), self.clock())
         self.cam.eye_pos.append([res, t0])
         self.update()
 
