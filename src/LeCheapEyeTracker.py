@@ -28,6 +28,7 @@ class LeCheapEyeTracker:
 #         self.last_frame_time = self.clock()
         self.ctime = []
         self.eye_pos = []
+        self.head_size = 486
         self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml')
         self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png')
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
@@ -85,6 +86,7 @@ class LeCheapEyeTracker:
         (x, y, w, h), minNeighbors = get_just_one(frame)
         half_w, quarter_w = w//2, w//4
         img_face = frame[(y+quarter_w):(y+quarter_w+half_w), x:x+half_w]
+        img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
@@ -182,8 +184,9 @@ class Canvas(app.Canvas):
 
     def on_timer(self, event):
         frame = self.cam.grab()
-        res, t0 = self.cam.process_frame (frame.copy(), self.clock())
-        self.cam.eye_pos.append([res, t0])
+        if not frame is None:
+            res, t0 = self.cam.process_frame (frame.copy(), self.cam.clock())
+            self.cam.eye_pos.append([res, t0])
         self.update()
 
 if __name__ == '__main__':

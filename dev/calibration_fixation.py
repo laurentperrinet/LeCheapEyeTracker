@@ -1,11 +1,11 @@
 import cv2
 import time
-from LeCheapEyeTracker import Camera, Canvas
+from LeCheapEyeTracker import LeCheapEyeTracker, Canvas
 from vispy import app
 import numpy as np
 
 N_frame = 42
-cam = Camera()
+cam = LeCheapEyeTracker()
 img0 = cam.grab()
 def stim(t):
     img0 = cam.grab()
