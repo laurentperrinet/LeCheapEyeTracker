@@ -5,58 +5,75 @@ One main file.
 
 """
 
-HAARCASCADE="~/pool/libs/vision/opencv/data/haarcascades/haarcascade_frontalface_default.xml" # where to find haar cascade file for face detection
-
+import time
 import numpy as np
+import cv2
 from multiprocessing.pool import ThreadPool
 from collections import deque
-import cv2, time
-
-class StatValue:
-    def __init__(self, smooth_coef = 0.5):
-        self.value = None
-        self.smooth_coef = smooth_coef
-    def update(self, v):
-        if self.value is None:
-            self.value = v
-        else:
-            c = self.smooth_coef
-            self.value = c * self.value + (1.0-c) * v
-
-def draw_str(dst, target, s):
-    x, y = target
-    cv2.putText(dst, s, (x+1, y+1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv2.LINE_AA)
-    cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
-
 
 class LeCheapEyeTracker:
-    def __init__(self, w=640, h=480):
-        self.h, self.w = h, w
+    def __init__(self, DOWNSCALE=1, threadn=0):
         import cv2
+        self.threadn = threadn
         self.cap = cv2.VideoCapture(0)
-        self.DOWNSCALE = 1
+        self.DOWNSCALE = DOWNSCALE
         W = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         H = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, W/self.DOWNSCALE)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H/self.DOWNSCALE)
-
-        self.threadn = cv2.getNumberOfCPUs()
-        self.pool = ThreadPool(processes = self.threadn)
-        self.pending = deque()
-
-        self.latency = StatValue()
-        self.frame_interval = StatValue()
-        self.last_frame_time = self.clock()
-        self.display = False
+        self.h, self.w = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT), self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        
+#         self.latency = StatValue()
+#         self.frame_interval = StatValue()
+#         self.last_frame_time = self.clock()
         self.ctime = []
         self.eye_pos = []
-        self.N = 0
         self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml')
         self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png')
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
+    def init__threads(self):
+        if self.threadn == 0 :
+            self.threadn = cv2.getNumberOfCPUs()
+            self.pool = ThreadPool(processes = self.threadn)
+            self.pending = deque()
+
     def clock(self):
         return cv2.getTickCount() / cv2.getTickFrequency()
+
+    def print_info(self):
+        for prop in [
+                    'APERTURE',
+                    'AUTO_EXPOSURE',
+                    'BACKLIGHT',
+                    'BRIGHTNESS',
+                    'CONTRAST',
+                    'CONVERT_RGB',
+                    'DC1394_MAX',
+                    'DC1394_MODE_AUTO',
+                    'DC1394_MODE_MANUAL',
+                    'DC1394_MODE_ONE_PUSH_AUTO',
+                    'DC1394_OFF',
+                    'EXPOSURE',
+                    'EXPOSUREPROGRAM',
+                    'FOCUS',
+                    'FORMAT',
+                    'FOURCC',
+                    'FPS',
+                    'FRAME_COUNT',
+                    'FRAME_HEIGHT',
+                    'FRAME_WIDTH',
+                    'GAIN',
+                    'GAMMA',
+                    'GUID',
+                    'HUE',
+                    'IRIS', 'ISO_SPEED', 'MODE', 'PAN', 'POS_AVI_RATIO', 
+                    'POS_FRAMES', 'POS_MSEC', 'RECTIFICATION', 'ROLL', 
+                    'SATURATION', 'SETTINGS', 'SHARPNESS', 'SPEED', 'TEMPERATURE', 
+                    'TILT', 'TRIGGER', 'TRIGGER_DELAY', 'VIEWFINDER', 
+                    'WHITE_BALANCE_BLUE_U', 'WHITE_BALANCE_RED_V', 'ZOOM'
+                ]:
+                 print(prop, self.cap.get(eval('cv2.CAP_PROP_' + prop)))
 
     def process_frame(self, frame, t0):
         def get_just_one(image):
@@ -75,36 +92,34 @@ class LeCheapEyeTracker:
     def grab(self):
         ret, frame = self.cap.read()
         return frame
-    
+
     def run(self, T=10):
         start = self.clock()
+        self.init__threads()
         while self.clock()-start <T:
-            if False:
+            if self.threadn > 1:
                 while len(self.pending) > 0 and self.pending[0].ready():
                     res, t0 = self.pending.popleft().get()
                     self.eye_pos.append([res, t0])
-                    self.latency.update(self.clock() - t0)
                     self.ctime.append(self.clock() - start)
-                    self.N += 1
                 if len(self.pending) < self.threadn:
                     frame = self.grab()
-                    t = self.clock()
-                    self.frame_interval.update(t - self.last_frame_time)
-                    self.last_frame_time = t
-                    task = self.pool.apply_async(self.process_frame, (frame.copy(), t))
-                    self.pending.append(task)
+                    if not frame is None:
+                        task = self.pool.apply_async(self.process_frame, (frame.copy(), self.clock()))
+                        self.pending.append(task)
             else:
+                frame = self.grab()
                 res, t0 = self.process_frame (frame.copy(), self.clock())
+                self.ctime.append(self.clock() - start)
                 self.eye_pos.append([res, t0])
-                
-            ch = 0xFF & cv2.waitKey(1)
-            if ch == 27:
-                self.close()
 
-    
     def close(self):
+        try:
+            self.pool.terminate()
+            self.pool.close()
+        except:
+            pass
         self.cap.release()
-        if self.display: cv2.destroyAllWindows()
 
 from vispy import app
 from vispy import gloo
@@ -162,10 +177,9 @@ class Canvas(app.Canvas):
             image = self.stim((time.time()-self.start)/self.timeline.max())
             self.program['texture'][...] = image.reshape((self.h, self.w, 3))
             self.program.draw('triangle_strip')
-            
         else:
             self.close()
-        
+
     def on_timer(self, event):
         frame = self.cam.grab()
         res, t0 = self.cam.process_frame (frame.copy(), self.clock())
@@ -177,8 +191,5 @@ if __name__ == '__main__':
     cam = ThreadSource()
     ctime = cam.run()
     cam.close()
-
-
-
 
 
