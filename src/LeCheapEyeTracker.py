@@ -11,6 +11,7 @@ import cv2
 from multiprocessing.pool import ThreadPool
 from collections import deque
 
+
 class LeCheapEyeTracker:
     def __init__(self, DOWNSCALE=1, threadn=0):
         import cv2
@@ -29,8 +30,8 @@ class LeCheapEyeTracker:
         self.ctime = []
         self.eye_pos = []
         self.head_size = 486
-        self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml')
-        self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png')
+        self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml') # TODO: use relative path
+        self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png') # TODO: use relative path
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
     def init__threads(self):
@@ -44,31 +45,15 @@ class LeCheapEyeTracker:
 
     def print_info(self):
         for prop in [
-                    'APERTURE',
-                    'AUTO_EXPOSURE',
-                    'BACKLIGHT',
-                    'BRIGHTNESS',
-                    'CONTRAST',
-                    'CONVERT_RGB',
-                    'DC1394_MAX',
-                    'DC1394_MODE_AUTO',
-                    'DC1394_MODE_MANUAL',
-                    'DC1394_MODE_ONE_PUSH_AUTO',
-                    'DC1394_OFF',
-                    'EXPOSURE',
-                    'EXPOSUREPROGRAM',
-                    'FOCUS',
-                    'FORMAT',
-                    'FOURCC',
-                    'FPS',
-                    'FRAME_COUNT',
-                    'FRAME_HEIGHT',
-                    'FRAME_WIDTH',
-                    'GAIN',
-                    'GAMMA',
-                    'GUID',
-                    'HUE',
-                    'IRIS', 'ISO_SPEED', 'MODE', 'PAN', 'POS_AVI_RATIO', 
+                    'APERTURE', 'AUTO_EXPOSURE',
+                    'BACKLIGHT', 'BRIGHTNESS',   'CONTRAST',  'CONVERT_RGB',
+                    'EXPOSURE',                     'EXPOSUREPROGRAM',
+                    'FOCUS',                     'FORMAT',
+                    'FOURCC',                     'FPS',
+                    'FRAME_COUNT',                     'FRAME_HEIGHT',
+                    'FRAME_WIDTH',                     'GAIN',
+                    'GAMMA',                     'GUID',
+                    'HUE',                     'IRIS', 'ISO_SPEED', 'MODE', 'PAN', 'POS_AVI_RATIO', 
                     'POS_FRAMES', 'POS_MSEC', 'RECTIFICATION', 'ROLL', 
                     'SATURATION', 'SETTINGS', 'SHARPNESS', 'SPEED', 'TEMPERATURE', 
                     'TILT', 'TRIGGER', 'TRIGGER_DELAY', 'VIEWFINDER', 
@@ -123,6 +108,8 @@ class LeCheapEyeTracker:
             pass
         self.cap.release()
 
+        
+# VISUALIZATION ROUTINES
 from vispy import app
 from vispy import gloo
 
@@ -143,7 +130,6 @@ fragment = """
     void main()
     {
         gl_FragColor = texture2D(texture, v_texcoord);
-
         // HACK: the image is in BGR instead of RGB.
         float temp = gl_FragColor.r;
         gl_FragColor.r = gl_FragColor.b;
