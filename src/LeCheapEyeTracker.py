@@ -11,37 +11,17 @@ import cv2
 from multiprocessing.pool import ThreadPool
 from collections import deque
 
-
-class LeCheapEyeTracker:
-    def __init__(self, DOWNSCALE=1, threadn=0):
+class PhotoReceptor:
+    def __init__(self, DOWNSCALE=1):
         import cv2
-        self.threadn = threadn
         self.cap = cv2.VideoCapture(0)
         self.DOWNSCALE = DOWNSCALE
-        W = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        H = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, W/self.DOWNSCALE)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H/self.DOWNSCALE)
+        if DOWNSCALE > 1:
+            W = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+            H = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, W/self.DOWNSCALE)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, H/self.DOWNSCALE)
         self.h, self.w = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT), self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        
-#         self.latency = StatValue()
-#         self.frame_interval = StatValue()
-#         self.last_frame_time = self.clock()
-        self.ctime = []
-        self.eye_pos = []
-        self.head_size = 486
-        self.cascade = cv2.CascadeClassifier('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/haarcascade_frontalface_default.xml') # TODO: use relative path
-        self.eye_template = cv2.imread('/Users/laurentperrinet/pool/science/LeCheapEyeTracker/src/my_eye.png') # TODO: use relative path
-        self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
-
-    def init__threads(self):
-        if self.threadn == 0 :
-            self.threadn = cv2.getNumberOfCPUs()
-            self.pool = ThreadPool(processes = self.threadn)
-            self.pending = deque()
-
-    def clock(self):
-        return cv2.getTickCount() / cv2.getTickFrequency()
 
     def print_info(self):
         for prop in [
@@ -61,6 +41,35 @@ class LeCheapEyeTracker:
                 ]:
                  print(prop, self.cap.get(eval('cv2.CAP_PROP_' + prop)))
 
+    def grab(self):
+        ret, frame = self.cap.read()
+        return frame
+
+    def close(self):
+        self.cap.release()
+
+class LeCheapEyeTracker:
+    def __init__(self, threadn=0):
+        import cv2
+        self.threadn = threadn
+        self.cam = PhotoReceptor()
+
+        self.ctime = []
+        self.eye_pos = []
+        self.head_size = 486
+        self.cascade = cv2.CascadeClassifier('../src/haarcascade_frontalface_default.xml') # TODO: use relative path
+        self.eye_template = cv2.imread('../src/my_eye.png') # TODO: use relative path
+        self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
+
+    def init__threads(self):
+        if self.threadn == 0 :
+            self.threadn = cv2.getNumberOfCPUs()
+            self.pool = ThreadPool(processes = self.threadn)
+            self.pending = deque()
+
+    def clock(self):
+        return cv2.getTickCount() / cv2.getTickFrequency()
+
     def process_frame(self, frame, t0):
         def get_just_one(image):
             features, minNeighbors = [], 1
@@ -76,10 +85,6 @@ class LeCheapEyeTracker:
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
 
-    def grab(self):
-        ret, frame = self.cap.read()
-        return frame
-
     def run(self, T=10):
         start = self.clock()
         self.init__threads()
@@ -90,12 +95,12 @@ class LeCheapEyeTracker:
                     self.eye_pos.append([res, t0])
                     self.ctime.append(self.clock() - start)
                 if len(self.pending) < self.threadn:
-                    frame = self.grab()
+                    frame = self.cam.grab()
                     if not frame is None:
                         task = self.pool.apply_async(self.process_frame, (frame.copy(), self.clock()))
                         self.pending.append(task)
             else:
-                frame = self.grab()
+                frame = self.cam.grab()
                 res, t0 = self.process_frame (frame.copy(), self.clock())
                 self.ctime.append(self.clock() - start)
                 self.eye_pos.append([res, t0])
@@ -106,7 +111,7 @@ class LeCheapEyeTracker:
             self.pool.close()
         except:
             pass
-        self.cap.release()
+        self.cam.close()
 
         
 # VISUALIZATION ROUTINES
@@ -138,8 +143,8 @@ fragment = """
 """
 
 class Canvas(app.Canvas):
-    def __init__(self, cam, stim):
-        self.cam = cam
+    def __init__(self, et, stim):
+        self.et = et
         self.stim, self.timeline = stim
         self.h, self.w, three = self.stim(0).shape
         app.use_app('pyglet')
@@ -169,10 +174,10 @@ class Canvas(app.Canvas):
             self.close()
 
     def on_timer(self, event):
-        frame = self.cam.grab()
+        frame = self.et.cam.grab()
         if not frame is None:
-            res, t0 = self.cam.process_frame (frame.copy(), self.cam.clock())
-            self.cam.eye_pos.append([res, t0])
+            res, t0 = self.et.process_frame (frame.copy(), self.et.clock())
+            self.et.eye_pos.append([res, t0])
         self.update()
 
 if __name__ == '__main__':
