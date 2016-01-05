@@ -6,7 +6,7 @@ focusing on speed rather than accuracy.
 
 - EyeTracker: an method to record the orientation of your gaze in space, in
   particular on a computer screen where you show relevant information.
-- Cheap: this depends on the difnition of cheap, but it aims to use material you
+- Cheap: this depends on your definition of cheap, but it aims to use material you
   most certainly already have on your computer (a "webcam") or on some cheap hard-
   ware (such as a Raspberry Pi with the camera set). Most examples were tested on
   MacOs and the Raspberry.
