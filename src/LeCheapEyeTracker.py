@@ -8,6 +8,8 @@ One main file.
 import time
 import numpy as np
 import cv2
+
+from openRetina import PhotoReceptor
 from multiprocessing.pool import ThreadPool
 from collections import deque
 
