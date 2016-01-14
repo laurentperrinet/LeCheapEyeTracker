@@ -28,4 +28,4 @@ if __name__ == '__main__':
 
     for downscale in [16, 8, 4, 2, 1]:
         print ('Downscale = %d ' % downscale)
-        print (pretty_print((moyFPS(nb_trials=16, downscale=downscale, N_frame=100))))
+        print (pretty_print(moyFPS(nb_trials=16, downscale=downscale, N_frame=100)))
