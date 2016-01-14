@@ -1,23 +1,30 @@
+
 import numpy as np
 import time
 from openRetina import PhotoReceptor
 
-def moyFPS(nb, scale):
-    N = 100
-    ctime = np.zeros(N)
+def moyFPS(nb_trials, downscale, N_frame = 100):
     
-    acc = 0
+    acc = []
     
-    for i in range(nb):
+    for i in range(nb_trials):
         start = time.time()
         
-        cam = PhotoReceptor(scale)
-        for j in range(N):
+        cam = PhotoReceptor(DOWNSCALE=downscale)
+        for j in range(N_frame):
             img = cam.grab()
-            ctime[j] = time.time()-start
         cam.close()
-        
-        acc = acc + N/(ctime[-1]-ctime[0])
+
+        stop = time.time()
+        acc.append(N_frame/(stop-start))
     
-    return acc/nb
-print (moyFPS(16,8))
+    return np.array(acc)
+
+def pretty_print(acc):
+    return(' 🍺 FPS = {mean} +/- {std} (in frames per second)'.format(mean=acc.mean(), std=acc.std()))
+
+if __name__ == '__main__':
+
+    for downscale in [16, 8, 4, 2, 1]:
+        print ('Downscale = %d ' % downscale)
+        print (pretty_print((moyFPS(nb_trials=16, downscale=downscale, N_frame=100))))
