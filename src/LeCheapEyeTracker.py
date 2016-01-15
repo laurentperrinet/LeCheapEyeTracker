@@ -39,7 +39,7 @@ class LeCheapEyeTracker:
     def get_just_one(self, image, MinNeighbors=20, scale=1.1):
         features, minNeighbors = [], 1
         while len(features) == 0 and minNeighbors<MinNeighbors:
-            features = self.cascade.detectMultiScale(image, scale, minNeighbors) 
+            features = self.cascade.detectMultiScale(image, scale, minNeighbors=MinNeighbors)
             minNeighbors += 1
         return features[0], minNeighbors
 
