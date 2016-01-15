@@ -36,14 +36,15 @@ class LeCheapEyeTracker:
     def clock(self):
         return cv2.getTickCount() / cv2.getTickFrequency()
 
+    def get_just_one(self, image, MinNeighbors=20, scale=1.1):
+        features, minNeighbors = [], 1
+        while len(features) == 0 and minNeighbors<MinNeighbors:
+            features = self.cascade.detectMultiScale(image, scale, minNeighbors) 
+            minNeighbors += 1
+        return features[0], minNeighbors
+
     def process_frame(self, frame, t0):
-        def get_just_one(image):
-            features, minNeighbors = [], 1
-            while len(features) == 0 and minNeighbors<20:
-                features = self.cascade.detectMultiScale(image, 1.1, minNeighbors) 
-                minNeighbors += 1
-            return features[0], minNeighbors
-        (x, y, w, h), minNeighbors = get_just_one(frame)
+        (x, y, w, h), minNeighbors = self.get_just_one(frame)
         half_w, quarter_w = w//2, w//4
         img_face = frame[(y+quarter_w):(y+quarter_w+half_w), x:x+half_w]
         img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
