@@ -1,11 +1,11 @@
 import cv2
 import time
-from LeCheapEyeTracker import LeCheapEyeTracker, Canvas
+from LeCheapEyeTracker import Server, Client
 from vispy import app
 import numpy as np
 
 N_frame = 42
-et = LeCheapEyeTracker()
+et = Server()
 img0 = et.cam.grab()
 def stim(t):
     img0 = et.cam.grab()
@@ -14,6 +14,6 @@ def stim(t):
     img = cv2.circle(img, (W//2, H//2), 12, (0,0,255), -1)
     return img
 
-screen = Canvas(et, (stim, np.linspace(0, 3., 100)))
+screen = Client(et, (stim, np.linspace(0, 3., 100)))
 app.run()
 et.close()

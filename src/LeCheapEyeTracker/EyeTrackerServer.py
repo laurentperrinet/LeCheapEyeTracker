@@ -13,7 +13,7 @@ import cv2
 from openRetina import PhotoReceptor
 from multiprocessing.pool import ThreadPool
 from collections import deque
-#from LeCheapEyeTracker.constants import *
+from LeCheapEyeTracker.constants import *
 #from constants import *
 
 class Server:
@@ -25,8 +25,9 @@ class Server:
         self.ctime = []
         self.eye_pos = []
         self.head_size = 486
-        self.cascade = cv2.CascadeClassifier('../src/haarcascade_frontalface_default.xml') # TODO: use relative path
-        self.eye_template = cv2.imread('../src/my_eye.png') # TODO: use relative path
+
+        self.cascade = cv2.CascadeClassifier(str.encode(xml_string))
+        self.eye_template = eye_image
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
     def init__threads(self):

@@ -35,7 +35,12 @@ fragment = """
     }
 """
 
-class Canvas(app.Canvas):
+class Client(app.Canvas):
+    """
+    
+    Coucou
+    
+    """
     def __init__(self, et, stim):
         self.et = et
         self.stim, self.timeline = stim
