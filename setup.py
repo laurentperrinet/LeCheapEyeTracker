@@ -11,7 +11,6 @@ setup(
     version = version,
     packages=find_packages('src', exclude='dev'),
     package_dir = {'': 'src'},
-    package_data = {'': ['src/my_eye.png', 'haarcascade_frontalface_default.xml']},
     author = "Laurent Perrinet INT - CNRS",
     author_email = "Laurent.Perrinet@univ-amu.fr",
     description = "LeCheapEyeTracker. A framework to record eye movement with existing hardware - focusing on speed rather than accuracy.",
