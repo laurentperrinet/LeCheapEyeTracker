@@ -6,7 +6,8 @@ The client side.
 
 """
 
-        
+import numpy as np
+import time
 # VISUALIZATION ROUTINES
 from vispy import app
 from vispy import gloo

@@ -26,7 +26,7 @@ class Server:
         self.eye_pos = []
         self.head_size = 486
 
-        self.cascade = cv2.CascadeClassifier(str.encode(xml_string))
+        self.cascade = face_cascade
         self.eye_template = eye_image
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
