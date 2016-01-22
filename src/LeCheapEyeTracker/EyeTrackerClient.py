@@ -29,10 +29,6 @@ fragment = """
     void main()
     {
         gl_FragColor = texture2D(texture, v_texcoord);
-        // HACK: the image is in BGR instead of RGB.
-        float temp = gl_FragColor.r;
-        gl_FragColor.r = gl_FragColor.b;
-        gl_FragColor.b = temp;
     }
 """
 
@@ -47,7 +43,7 @@ class Client(app.Canvas):
         self.stim, self.timeline = stim, timeline
         self.h, self.w, three = self.stim(0).shape
         app.use_app('pyglet')
-        app.Canvas.__init__(self, keys='interactive', fullscreen=True, size=(1280, 960))#
+        app.Canvas.__init__(self, keys='interactive', fullscreen=True)#, size=(1280, 960))#
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
@@ -73,10 +69,13 @@ class Client(app.Canvas):
             self.close()
 
     def on_timer(self, event):
-        frame = self.et.cam.grab()
-        if not frame is None:
-            res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
-            self.et.eye_pos.append([res, t0])
+        try:
+            frame = self.et.cam.grab()
+            if not frame is None:
+                res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
+                self.et.eye_pos.append([res, t0])
+        except:
+            if not self.et is None: print('could not grab a frame / detect the eye''s position')
         self.update()
 
 if __name__ == '__main__':
