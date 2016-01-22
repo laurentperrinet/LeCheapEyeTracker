@@ -12,10 +12,19 @@ import time
 
 class Stimulation():
 
-    def __init__
+    def __init__(self, duration, stim_type = 'calibration'):
+        self.duration = duration
+        self.name = name
+        self.stim_type = stim_type
+
+    def run(self):
+        t0 = time.time()
+        while (time.time()-t0 < self.duration):
+            print ("stim en cours")
 
 
-    def run(t):
+    def stim_details(self)
+        switch 
 
    
 
