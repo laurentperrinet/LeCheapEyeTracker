@@ -8,6 +8,17 @@ The client side.
 
 import numpy as np
 import time
+
+
+class Stimulation():
+
+    def __init__
+
+
+    def run(t):
+
+   
+
 # VISUALIZATION ROUTINES
 from vispy import app
 from vispy import gloo
@@ -79,23 +90,19 @@ class Client(app.Canvas):
         self.update()
 
 if __name__ == '__main__':
-    from LeCheapEyeTracker import Server
 
     import cv2
-    import time
     import numpy as np
+    img0 = np.zeros((780, 1280, 3)).astype(np.uint8)
+    H, W, three = img0.shape
 
-    et = Server()
-    img0 = et.cam.grab()
     def stim(t):
-        img0 = et.cam.grab()
-        H, W, three = img0.shape
         img = img0.copy()
-        img = cv2.circle(img, (W//2, H//2), 12, (0,0,255), -1)
+        pos = W/2 + .8 * W/2 * np.sin(2*np.pi*t)
+        img = cv2.circle(img, (int(pos), H//2), 12, (0,0,255), -1)
         return img
 
-    screen = Client(et, (stim, np.linspace(0, 3., 100)))
+    fps = 100
+    screen = Client(et=None, stim=stim, timeline=np.linspace(0, 3., 3.*fps))
     app.run()
-    et.close()
-
 
