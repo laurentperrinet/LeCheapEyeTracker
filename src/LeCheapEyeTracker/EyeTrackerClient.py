@@ -80,9 +80,24 @@ class Client(app.Canvas):
         self.update()
 
 if __name__ == '__main__':
-    start = time.time()
-    cam = ThreadSource()
-    ctime = cam.run()
-    cam.close()
+    from LeCheapEyeTracker import Server
+
+    import cv2
+    import time
+    import numpy as np
+
+    N_frame = 42
+    et = Server()
+    img0 = et.cam.grab()
+    def stim(t):
+        img0 = et.cam.grab()
+        H, W, three = img0.shape
+        img = img0.copy()
+        img = cv2.circle(img, (W//2, H//2), 12, (0,0,255), -1)
+        return img
+
+    screen = Client(et, (stim, np.linspace(0, 3., 100)))
+    app.run()
+    et.close()
 
 

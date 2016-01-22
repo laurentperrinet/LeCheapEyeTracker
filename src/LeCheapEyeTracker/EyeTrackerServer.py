@@ -88,7 +88,7 @@ class Server:
 
 if __name__ == '__main__':
     start = time.time()
-    cam = ThreadSource()
+    cam = Server()
     ctime = cam.run()
     cam.close()
 
