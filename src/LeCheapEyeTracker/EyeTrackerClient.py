@@ -42,9 +42,9 @@ class Client(app.Canvas):
     Coucou
     
     """
-    def __init__(self, et, stim):
+    def __init__(self, et, stim, timeline):
         self.et = et
-        self.stim, self.timeline = stim
+        self.stim, self.timeline = stim, timeline
         self.h, self.w, three = self.stim(0).shape
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', fullscreen=True, size=(1280, 960))#
@@ -75,7 +75,7 @@ class Client(app.Canvas):
     def on_timer(self, event):
         frame = self.et.cam.grab()
         if not frame is None:
-            res, t0 = self.et.process_frame (frame.copy(), self.et.clock())
+            res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
             self.et.eye_pos.append([res, t0])
         self.update()
 
@@ -86,7 +86,6 @@ if __name__ == '__main__':
     import time
     import numpy as np
 
-    N_frame = 42
     et = Server()
     img0 = et.cam.grab()
     def stim(t):
