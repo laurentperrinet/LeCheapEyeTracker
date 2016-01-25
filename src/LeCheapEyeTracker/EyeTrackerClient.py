@@ -11,7 +11,13 @@ import time
 
 
 class Stimulation():
+"""
+A stimulation is an ensemble of stimuli and its properties. This class
+allows creating and running stimulations.
 
+To set positions we will use a coordinate system in which the origin
+is at the top-left on the screen and coordinates are normalized by height.
+"""
     def __init__(self, duration, stim_type = 'calibration'):
         self.duration = duration
         self.name = name
@@ -22,11 +28,14 @@ class Stimulation():
         while (time.time()-t0 < self.duration):
             print ("stim en cours")
 
-
-    def stim_details(self)
-        switch 
-
-   
+    def stim_details(self):
+    """
+    Set stimulation properties according to its type
+    """
+    if self.stim_type == 'calibration':
+        self.tabPos = [(), (), (), (), (), ()] 
+        self.transition_lag = 50
+        self.stimulus = 
 
 # VISUALIZATION ROUTINES
 from vispy import app
