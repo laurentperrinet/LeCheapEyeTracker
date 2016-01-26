@@ -8,42 +8,73 @@ The client side.
 
 import numpy as np
 import time
-
-
-class Stimulation():
-"""
-A stimulation is an ensemble of stimuli and its properties. This class
-allows creating and running stimulations.
-
-To set positions we will use a coordinate system in which the origin
-is at the top-left on the screen and coordinates are normalized by height.
-"""
-    def __init__(self, duration, stim_type = 'calibration'):
-        self.duration = duration
-        self.name = name
-        self.stim_type = stim_type
-
-    def run(self):
-        t0 = time.time()
-        while (time.time()-t0 < self.duration):
-            print ("stim en cours")
-
-    def stim_details(self):
-    """
-    Set stimulation properties according to its type
-    """
-    if self.stim_type == 'calibration':
-        self.tabPos = [(), (), (), (), (), ()] 
-        self.transition_lag = 50
-        self.stimulus = 
+import cv2
 
 # VISUALIZATION ROUTINES
 from vispy import app
 from vispy import gloo
 
+#--------------------------------------------------------------------------
+
+class Stimulation():
+    """
+    A stimulation is an ensemble of stimuli and its properties. This class
+    allows creating and running stimulations and is handled by Client.
+
+    To set positions we will use a coordinate system in which the origin
+    is at the top-left on the screen and coordinates are normalized.
+    """
+
+#----Public methods----
+
+    def __init__(self, window_h, window_w, stim_type = 'calibration'):
+        self.stim_type = stim_type
+        self.window_h = window_h
+        self.window_w = window_w
+        self.stim_details()
+
+    def run(self):
+        t0 = time.time()
+        i = 0
+        while (time.time()-t0 < self.duration or i <= self.nb_stim-1):
+            if time.time()-t0 < self.transition_lag*(i+1):
+                self.draw_stimulus(self.tabPos[i])
+            print ("stim en cours")
+            i += 1
+
+#----Privates methods-----
+
+    def stim_details(self):
+        """
+        (private) Set stimulation properties according to stimulation desired type
+        """
+        if self.stim_type == 'calibration':
+            self.duration = 10
+            self.tabPos = [(0.5, 0.5), (0.1, 0.5), (0.5, 0.1), (0.5, 0.5), (0.9, 0.5), (0.5, 0,9), (0.5, 0.5)]
+            self.transition_lag = 1
+            self.stimulus = 'target'
+        else :
+            print ("This type of stimulation is not implemented for the moment")
+
+    def draw_stimulus(self, posY, posX):
+        """
+        (private) Draw a stimulus at a normalized position given.
+        Compute the 'true' position.
+        posY, posX : the stimulus normalized localization
+        """
+        img0 = np.zeros((self.window_h,self.window_w, 3)).astype(np.uint8)
+        pos = (self.window_h*posY, self.window_w*posX)
+
+        if self.stimulus == 'target':
+            img = img0.copy()
+            img = cv2.circle(img, int(pos), 12, (0, 0, 255), 1)
+            img = cv2.circle(img, int(pos), 3, (0, 0, 255), -1)
+
+#---------------------------------------------------------------------------
+
 vertex = """
     attribute vec2 position;
-    attribute vec2 texcoord;
+    attribute vec2 textcoord;
     varying vec2 v_texcoord;
     void main()
     {
@@ -54,23 +85,21 @@ vertex = """
 
 fragment = """
     uniform sampler2D texture;
-    varying vec2 v_texcoord;
+    varying vec2 texcoord;
     void main()
     {
-        gl_FragColor = texture2D(texture, v_texcoord);
+        gl_Fragcolor = texture2D(texture, v_texcoord);
     }
 """
 
 class Client(app.Canvas):
     """
-    
-    Coucou
-    
+    The client initializes and updates the display where stimulations and
+    camera take will occur.
     """
-    def __init__(self, et, stim, timeline):
+    def __init__(self, et, timeline):
         self.et = et
-        self.stim, self.timeline = stim, timeline
-        self.h, self.w, three = self.stim(0).shape
+        self.timeline = timeline
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', fullscreen=True)#, size=(1280, 960))#
         self.program = gloo.Program(vertex, fragment, count=4)
@@ -80,6 +109,7 @@ class Client(app.Canvas):
         width, height = self.physical_size
         gloo.set_viewport(0, 0, width, height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
+        self.stimulation = Stimulation(height, width)
         self.start = time.time()
         self.show()
 
@@ -89,9 +119,9 @@ class Client(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear('black')
-        if time.time()-self.start < self.timeline.max(): # + ret.sleep_time*2: 
+        if time.time()-self.start < self.timeline.max(): # + ret.sleep_time*2:
             #i_t = min(self.timeline - time.time()-self.start)
-            image = self.stim((time.time()-self.start)/self.timeline.max())
+            #image = self.stim((time.time()-self.start)/self.timeline.max())
             self.program['texture'][...] = image.reshape((self.h, self.w, 3))
             self.program.draw('triangle_strip')
         else:
@@ -111,16 +141,8 @@ if __name__ == '__main__':
 
     import cv2
     import numpy as np
-    img0 = np.zeros((780, 1280, 3)).astype(np.uint8)
-    H, W, three = img0.shape
-
-    def stim(t):
-        img = img0.copy()
-        pos = W/2 + .8 * W/2 * np.sin(2*np.pi*t)
-        img = cv2.circle(img, (int(pos), H//2), 12, (0,0,255), -1)
-        return img
 
     fps = 100
-    screen = Client(et=None, stim=stim, timeline=np.linspace(0, 3., 3.*fps))
+    screen = Client(et=None, timeline=np.linspace(0, 3., 3.*fps))
     app.run()
 
