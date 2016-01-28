@@ -102,26 +102,25 @@ class Client(app.Canvas):
         self.timeline = timeline
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', fullscreen=True)#, size=(1280, 960))#
-        width, height = self.physical_size
+        self.width, self.height = self.physical_size
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
-        self.program['texture'] = np.zeros((height, width, 3)).astype(np.uint8)
-        gloo.set_viewport(0, 0, width, height)
+        self.program['texture'] = np.zeros((self.height, self.width, 3)).astype(np.uint8)
+        gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
         self.show()
 
     def on_resize(self, event):
-        width, height = event.physical_size
-        gloo.set_viewport(0, 0, width, height)
+        self.width, self.height = event.physical_size
+        gloo.set_viewport(0, 0, self.width, self.height)
 
     def on_draw(self, event):
         gloo.clear('black')
         if time.time()-self.start < self.timeline.max(): # + ret.sleep_time*2:
-            width, height = self.physical_size
-            image = np.random.rand(height, width, 3)*255
-            self.program['texture'][...] = image.astype(np.uint8).reshape((height, width, 3))
+            image = np.random.rand(self.height, self.width, 3)*255
+            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height, self.width, 3))
             self.program.draw('triangle_strip')
         else:
             self.close()
@@ -142,6 +141,6 @@ if __name__ == '__main__':
     import numpy as np
 
     fps = 100
-    stimulation = Stimulation(height, width)
+    stimulation = Stimulation(960, 1280)
     screen = Client(et=None, timeline=np.linspace(0, 3., 3.*fps))
     app.run()
