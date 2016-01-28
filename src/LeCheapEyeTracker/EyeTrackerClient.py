@@ -74,7 +74,7 @@ class Stimulation():
 
 vertex = """
     attribute vec2 position;
-    attribute vec2 textcoord;
+    attribute vec2 texcoord;
     varying vec2 v_texcoord;
     void main()
     {
@@ -85,10 +85,10 @@ vertex = """
 
 fragment = """
     uniform sampler2D texture;
-    varying vec2 texcoord;
+    varying vec2 v_texcoord;
     void main()
     {
-        gl_Fragcolor = texture2D(texture, v_texcoord);
+        gl_FragColor = texture2D(texture, v_texcoord);
     }
 """
 
@@ -102,14 +102,13 @@ class Client(app.Canvas):
         self.timeline = timeline
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', fullscreen=True)#, size=(1280, 960))#
+        width, height = self.physical_size
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
-        self.program['texture'] = np.zeros((self.h, self.w, 3)).astype(np.uint8)
-        width, height = self.physical_size
+        self.program['texture'] = np.zeros((height, width, 3)).astype(np.uint8)
         gloo.set_viewport(0, 0, width, height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
-        self.stimulation = Stimulation(height, width)
         self.start = time.time()
         self.show()
 
@@ -120,9 +119,9 @@ class Client(app.Canvas):
     def on_draw(self, event):
         gloo.clear('black')
         if time.time()-self.start < self.timeline.max(): # + ret.sleep_time*2:
-            #i_t = min(self.timeline - time.time()-self.start)
-            #image = self.stim((time.time()-self.start)/self.timeline.max())
-            self.program['texture'][...] = image.reshape((self.h, self.w, 3))
+            width, height = self.physical_size
+            image = np.random.rand(height, width, 3)*255
+            self.program['texture'][...] = image.astype(np.uint8).reshape((height, width, 3))
             self.program.draw('triangle_strip')
         else:
             self.close()
@@ -143,6 +142,6 @@ if __name__ == '__main__':
     import numpy as np
 
     fps = 100
+    stimulation = Stimulation(height, width)
     screen = Client(et=None, timeline=np.linspace(0, 3., 3.*fps))
     app.run()
-
