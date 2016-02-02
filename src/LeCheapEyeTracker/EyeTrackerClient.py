@@ -16,13 +16,14 @@ from vispy import gloo
 
 #--------------------------------------------------------------------------
 
-class Stimulation():
+class Stimulation(object):
     """
     A stimulation is an ensemble of stimuli and its properties. This class
     allows creating and running stimulations and is handled by Client.
 
-    To set positions we will use the non-intuitive OpenCV coordinate system in which the origin
+    To set positions we will use OpenCV's coordinate system in which the origin
     is at the top-right on the screen and coordinates are normalized.
+
     """
 
 #----Public methods----
@@ -35,7 +36,7 @@ class Stimulation():
 
     def run(self):
         """
-        Provide a continuum like use of the class
+        Provide a continuum-like use of the class
         """
         t0 = time.time()
         i = 0
@@ -64,7 +65,7 @@ class Stimulation():
             self.duration = 10
             #Origin in OpenCV is at the right-up corner
             self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.9, 0.5), (0.5, 0.5), (0.5, 0.9), (0.1, 0.5), (0.5, 0.5)]
-            self.transition_lag = 1
+            self.transition_lag = 1 # how long (in seconds) a calibration dot is shown
             self.stimulus = 'target'
         else :
             print ("This type of stimulation is not implemented for the moment")
@@ -74,8 +75,9 @@ class Stimulation():
         (private) Draw a stimulus at a normalized position given.
         Compute the 'true' position.
         pos : the stimulus normalized localization
+
         """
-        img0 = np.zeros((self.window_h,self.window_w, 3)).astype(np.uint8)
+        img0 = np.zeros((self.window_h, self.window_w, 3)).astype(np.uint8)
         posX, posY = pos
         pos = (int(self.window_w*posX), int(self.window_h*posY))
         if self.stimulus == 'target':
@@ -85,7 +87,7 @@ class Stimulation():
 
         return img
 #---------------------------------------------------------------------------
-
+# TODO import these from constants.py
 vertex = """
     attribute vec2 position;
     attribute vec2 texcoord;
@@ -111,14 +113,14 @@ class Client(app.Canvas):
     The client initializes and updates the display where stimulations and
     camera take will occur.
     """
-    def __init__(self, et, timeline):
+    def __init__(self, et, timeline, stim_type='calibration'):
         self.et = et
         self.timeline = timeline
         app.use_app('pyglet')
-        app.Canvas.__init__(self, keys='interactive', fullscreen=True, size=(1280, 720))
+        app.Canvas.__init__(self, keys='interactive', title=stim_type, fullscreen=True, size=(1280, 720))
         self.width, self.height = self.physical_size
         print ('window size : ', self.physical_size)
-        self.stimulation = Stimulation(self.width, self.height, stim_type='calibration')
+        self.stimulation = Stimulation(self.width, self.height, stim_type=stim_type)
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
@@ -160,6 +162,6 @@ if __name__ == '__main__':
     import numpy as np
     from LeCheapEyeTracker import Server
 
-    fps = 100
+    fps = 100 # the maximum FPS we try in this experiment
     screen = Client(et=Server(), timeline=np.linspace(0, 7., 3.*fps))
-    app.run()
+    screen.app.run()
