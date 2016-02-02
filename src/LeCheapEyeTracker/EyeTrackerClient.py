@@ -31,6 +31,7 @@ class Stimulation():
         self.stim_type = stim_type
         self.window_h = window_h
         self.window_w = window_w
+        self.ratio = self.window_w / self.window_h
         self.stim_details()
 
     def run(self):
@@ -62,8 +63,7 @@ class Stimulation():
         """
         if self.stim_type == 'calibration':
             self.duration = 10
-            #Origin in OpenCV is at the right-up corner
-            self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.9, 0.5), (0.5, 0.5), (0.5, 0.9), (0.1, 0.5), (0.5, 0.5)]
+            self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.1, 0.5), (0.5, 0.5), (0.5, 0.9), (0.9, 0.5), (0.5, 0.5)]
             self.transition_lag = 1
             self.stimulus = 'target'
         else :
@@ -72,18 +72,33 @@ class Stimulation():
     def draw_stimulus(self, pos):
         """
         (private) Draw a stimulus at a normalized position given.
-        Compute the 'true' position.
         pos : the stimulus normalized localization
         """
         img0 = np.zeros((self.window_h,self.window_w, 3)).astype(np.uint8)
-        posX, posY = pos
-        pos = (int(self.window_w*posX), int(self.window_h*posY))
+
+        #fixation cross
+
+        img = img0.copy()
+        img = cv2.line(img, self.compute_pos((0.470, 0.5)), self.compute_pos((0.530, 0.5)), (255, 255, 255), 2)
+        img = cv2.line(img, self.compute_pos((0.5, 0.45)), self.compute_pos((0.5, 0.55)), (255, 255, 255), 2)
+
+        #target
+
         if self.stimulus == 'target':
-            img = img0.copy()
-            img = cv2.circle(img, pos, 12, (0, 0, 255), 1)
-            img = cv2.circle(img, pos, 3, (0, 0, 255), -1)
+            img = cv2.circle(img, self.compute_pos(pos), 24, (0, 0, 255), 1)
+            img = cv2.circle(img, self.compute_pos(pos), 6, (0, 0, 255), -1)
 
         return img
+
+    def compute_pos(self, pos):
+        """
+        (private) Compute position in OpenCV coordinates system
+        """
+        posX, posY = pos
+        posX = int((1-posX) * self.window_w)
+        posY = int(posY * self.window_h)
+        return (posX, posY)
+
 #---------------------------------------------------------------------------
 
 vertex = """
@@ -116,6 +131,7 @@ class Client(app.Canvas):
         self.timeline = timeline
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', fullscreen=True, size=(1280, 720))
+        self.fullscreen = True
         self.width, self.height = self.physical_size
         print ('window size : ', self.physical_size)
         self.stimulation = Stimulation(self.width, self.height, stim_type='calibration')
