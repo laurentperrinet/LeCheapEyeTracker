@@ -64,8 +64,9 @@ class Stimulation(object):
         """
         if self.stim_type == 'calibration':
             self.duration = 10
-            self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.1, 0.5), (0.5, 0.5), (0.5, 0.9), (0.9, 0.5), (0.5, 0.5)]
-#             self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.9, 0.5), (0.5, 0.5), (0.5, 0.9), (0.1, 0.5), (0.5, 0.5)]
+            #10° excentricity if subject-screen = 57 cm and the display is 60x33 cm
+            self.tabPos = [(0.5, 0.5), (0.5, 0.2), (0.33, 0.5), (0.5, 0.5), (0.5, 0.8), (0.67, 0.5), (0.5, 0.5)]
+            #self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.1, 0.5), (0.5, 0.5), (0.5, 0.9), (0.9, 0.5), (0.5, 0.5)]
             self.transition_lag = 1 # how long (in seconds) a calibration dot is shown
             self.stimulus = 'target'
         else :
@@ -84,9 +85,6 @@ class Stimulation(object):
         img = cv2.line(img, self.compute_pos((0.470, 0.5)), self.compute_pos((0.530, 0.5)), (255, 255, 255), 2)
         img = cv2.line(img, self.compute_pos((0.5, 0.45)), self.compute_pos((0.5, 0.55)), (255, 255, 255), 2)
 
-        #target
-#         posX, posY = pos
-#         pos = (int(self.window_w*posX), int(self.window_h*posY))
         if self.stimulus == 'target':
             img = cv2.circle(img, self.compute_pos(pos), 24, (0, 0, 255), 1)
             img = cv2.circle(img, self.compute_pos(pos), 6, (0, 0, 255), -1)
