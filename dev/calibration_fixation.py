@@ -14,6 +14,8 @@ def stim(t):
     img = cv2.circle(img, (W//2, H//2), 12, (0,0,255), -1)
     return img
 
-screen = Client(et, np.linspace(0, 3., 100))
+T, fps = 7., 30
+timeline = np.linspace(0, T, T*fps)
+screen = Client(et, timeline)
 app.run()
 et.close()

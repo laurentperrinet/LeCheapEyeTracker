@@ -13,7 +13,7 @@ import cv2
 from openRetina import PhotoReceptor
 from multiprocessing.pool import ThreadPool
 from collections import deque
-from LeCheapEyeTracker.constants import *
+from .constants import *
 #from constants import *
 
 class Server:
@@ -26,8 +26,10 @@ class Server:
         self.eye_pos = []
         self.head_size = 486
 
-        self.cascade = face_cascade
+        #self.cascade = face_cascade
+        self.cascade = cv2.CascadeClassifier('/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
         self.eye_template = eye_image
+        #print(eye_image.shape)
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
     def init__threads(self):
@@ -82,9 +84,6 @@ class Server:
         except:
             pass
         self.cam.close()
-
-        
-
 
 if __name__ == '__main__':
     start = time.time()

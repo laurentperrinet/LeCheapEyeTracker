@@ -143,6 +143,7 @@ class Client(app.Canvas):
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
+        self.native.set_mouse_visible(False)
         self.show()
 
     def on_resize(self, event):
@@ -151,24 +152,23 @@ class Client(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear('black')
-        if time.time()-self.start < self.timeline.max(): # + ret.sleep_time*2:
-            #image = np.random.rand(self.height, self.width, 3)*255
+        self.program.draw('triangle_strip')
+
+    def on_timer(self, event):
+        if time.time()-self.start < self.timeline.max():
             image = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
             #frame = self.et.cam.grab()
             self.program['texture'][...] = image.astype(np.uint8).reshape((self.height, self.width, 3))
             #self.program['texture'] = frame
-            self.program.draw('triangle_strip')
         else:
             self.close()
-
-    def on_timer(self, event):
         try:
             frame = self.et.cam.grab()
             if not frame is None:
                 res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
                 self.et.eye_pos.append([res, t0])
-        except:
-            if not self.et is None: print('could not grab a frame / detect the eye''s position')
+        except Exception as e:
+            if not self.et is None: print('could not grab a frame / detect the eye''s position', e)
         self.update()
 
 if __name__ == '__main__':
@@ -177,6 +177,7 @@ if __name__ == '__main__':
     import numpy as np
     from LeCheapEyeTracker import Server
 
-    fps = 100 # the maximum FPS we try in this experiment
-    screen = Client(et=Server(), timeline=np.linspace(0, 7., 3.*fps))
+    fps = 10 # the maximum FPS we try in this experiment
+    T = 7.
+    screen = Client(et=Server(), timeline=np.linspace(0, T, T*fps))
     screen.app.run()
