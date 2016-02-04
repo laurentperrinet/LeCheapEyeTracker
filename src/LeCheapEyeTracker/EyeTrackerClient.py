@@ -131,15 +131,15 @@ class Client(app.Canvas):
         self.et = et
         self.timeline = timeline
         app.use_app('pyglet')
-        app.Canvas.__init__(self, keys='interactive', fullscreen=True, size=(1280, 720))
+        app.Canvas.__init__(self, keys='interactive', size=(1280, 720))
         self.fullscreen = True
         self.width, self.height = self.physical_size
         print ('window size : ', self.physical_size)
-        self.stimulation = Stimulation(self.width, self.height, stim_type=stim_type)
+        self.stimulation = Stimulation(self.width//10, self.height//10, stim_type=stim_type)
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
-        self.program['texture'] = np.zeros((self.height, self.width, 3)).astype(np.uint8)
+        self.program['texture'] = np.zeros((self.height//10, self.width//10, 3)).astype(np.uint8)
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
@@ -158,7 +158,7 @@ class Client(app.Canvas):
         if time.time()-self.start < self.timeline.max():
             image = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
             #frame = self.et.cam.grab()
-            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height, self.width, 3))
+            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//10, self.width//10, 3))
             #self.program['texture'] = frame
         else:
             self.close()
