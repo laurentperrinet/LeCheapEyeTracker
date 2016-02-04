@@ -127,7 +127,7 @@ class Client(app.Canvas):
     The client initializes and updates the display where stimulations and
     camera take will occur.
     """
-    def __init__(self, et, timeline, stim_type='calibration'):
+    def __init__(self, et, timeline, downscale, stim_type='calibration'):
         self.et = et
         self.timeline = timeline
         app.use_app('pyglet')
@@ -135,11 +135,11 @@ class Client(app.Canvas):
         self.fullscreen = True
         self.width, self.height = self.physical_size
         print ('window size : ', self.physical_size)
-        self.stimulation = Stimulation(self.width//10, self.height//10, stim_type=stim_type)
+        self.stimulation = Stimulation(self.width//downscale, self.height//downscale, stim_type=stim_type)
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
-        self.program['texture'] = np.zeros((self.height//10, self.width//10, 3)).astype(np.uint8)
+        self.program['texture'] = np.zeros((self.height//downscale, self.width//downscale, 3)).astype(np.uint8)
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
@@ -158,7 +158,7 @@ class Client(app.Canvas):
         if time.time()-self.start < self.timeline.max():
             image = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
             #frame = self.et.cam.grab()
-            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//10, self.width//10, 3))
+            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//downscale, self.width//downscale, 3))
             #self.program['texture'] = frame
         else:
             self.close()

@@ -54,6 +54,7 @@ class Server:
         img_face = frame[(y+quarter_w):(y+quarter_w+half_w), x:x+half_w]
         img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
+        print (res)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
 
