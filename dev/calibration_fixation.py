@@ -14,6 +14,6 @@ def stim(t):
     img = cv2.circle(img, (W//2, H//2), 12, (0,0,255), -1)
     return img
 
-screen = Client(et, (stim, np.linspace(0, 3., 100)))
+screen = Client(et, np.linspace(0, 3., 100))
 app.run()
 et.close()
