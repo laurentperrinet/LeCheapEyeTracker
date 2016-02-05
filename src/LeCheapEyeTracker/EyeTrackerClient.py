@@ -54,7 +54,8 @@ class Stimulation(object):
         Return a cliche of stimulation at t, t0 the start of stimulation
         """
         i = int((t-t0)//self.transition_lag)
-        return self.draw_stimulus(self.tabPos[i])
+        stim_x, stim_y = self.tabPos[i]
+        return self.draw_stimulus((stim_x, stim_y)), stim_x
 
 #----Privates methods-----
 
@@ -128,6 +129,7 @@ class Client(app.Canvas):
     camera take will occur.
     """
     def __init__(self, et, timeline, downscale, stim_type='calibration'):
+        self.downscale = downscale
         self.et = et
         self.timeline = timeline
         app.use_app('pyglet')
@@ -143,6 +145,7 @@ class Client(app.Canvas):
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
+        self.stims_X_t = np.array([])
         self.native.set_mouse_visible(False)
         self.show()
 
@@ -156,28 +159,31 @@ class Client(app.Canvas):
 
     def on_timer(self, event):
         if time.time()-self.start < self.timeline.max():
-            image = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
-            #frame = self.et.cam.grab()
-            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//downscale, self.width//downscale, 3))
-            #self.program['texture'] = frame
+            image, x = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
+            self.stims_X_t = np.append(self.stims_X_t, (x, time.time()-self.start))
+            self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//self.downscale, self.width//self.downscale, 3))
         else:
+            self.et.close()
+            print ('target dynamic :\n', self.stims_X_t)
+            print ('eye dynamic :\n', self.et.eye_x_t)
             self.close()
+            
         try:
             frame = self.et.cam.grab()
             if not frame is None:
                 res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
-                self.et.eye_pos.append([res, t0])
+                x, y = res
+                self.et.eye_x_t = np.append(self.et.eye_x_t, (x, time.time()-self.start))
         except Exception as e:
-            if not self.et is None: print('could not grab a frame / detect the eye''s position', e)
+            if not self.et is None: print('could not grab a frame / detect the eye position', e)
         self.update()
-
 if __name__ == '__main__':
 
     import cv2
     import numpy as np
     from LeCheapEyeTracker import Server
 
-    fps = 10 # the maximum FPS we try in this experiment
+    fps = 30 # the maximum FPS we try in this experiment
     T = 7.
-    screen = Client(et=Server(), timeline=np.linspace(0, T, T*fps))
+    screen = Client(et=Server(), timeline=np.linspace(0, T, T*fps), downscale=2)
     screen.app.run()

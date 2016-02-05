@@ -22,8 +22,7 @@ class Server:
         self.threadn = threadn
         self.cam = PhotoReceptor()
 
-        self.ctime = []
-        self.eye_pos = []
+        self.eye_x_t= np.array([])
         self.head_size = 486
 
         #self.cascade = face_cascade
@@ -54,7 +53,6 @@ class Server:
         img_face = frame[(y+quarter_w):(y+quarter_w+half_w), x:x+half_w]
         img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
-        print (res)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
 
@@ -65,8 +63,8 @@ class Server:
             if self.threadn > 1:
                 while len(self.pending) > 0 and self.pending[0].ready():
                     res, t0 = self.pending.popleft().get()
-                    self.eye_pos.append([res, t0])
-                    self.ctime.append(self.clock() - start)
+                    x, y = res
+                    self.eye_x_t = np.append(self.eye_x_t, (x, self.clock() - start))
                 if len(self.pending) < self.threadn:
                     frame = self.cam.grab()
                     if not frame is None:
@@ -74,9 +72,9 @@ class Server:
                         self.pending.append(task)
             else:
                 frame = self.cam.grab()
-                res, t0 = self.process_frame (frame.copy(), self.clock())
-                self.ctime.append(self.clock() - start)
-                self.eye_pos.append([res, t0])
+                res, t0 = self.process_frame(frame.copy(), self.clock())
+                x, y = res
+                self.eye_x_t = np.append(self.eye_x_t, (x, self.clock() - start))
 
     def close(self):
         try:
