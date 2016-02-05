@@ -163,7 +163,6 @@ class Client(app.Canvas):
             self.stims_X_t = np.append(self.stims_X_t, (x, time.time()-self.start))
             self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//self.downscale, self.width//self.downscale, 3))
         else:
-            self.et.close()
             print ('target dynamic :\n', self.stims_X_t)
             print ('eye dynamic :\n', self.et.eye_x_t)
             self.close()
@@ -187,3 +186,5 @@ if __name__ == '__main__':
     T = 7.
     screen = Client(et=Server(), timeline=np.linspace(0, T, T*fps), downscale=2)
     screen.app.run()
+    screen.et.close()
+
