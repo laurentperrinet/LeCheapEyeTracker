@@ -145,7 +145,7 @@ class Client(app.Canvas):
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
-        self.stims_X_t = np.array([])
+        self.stims_X_t = []
         self.native.set_mouse_visible(False)
         self.show()
 
@@ -160,22 +160,22 @@ class Client(app.Canvas):
     def on_timer(self, event):
         if time.time()-self.start < self.timeline.max():
             image, x = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
-            self.stims_X_t = np.append(self.stims_X_t, (x, time.time()-self.start))
+            self.stims_X_t.append((x, time.time()-self.start))
             self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//self.downscale, self.width//self.downscale, 3))
+            try:
+                frame = self.et.cam.grab()
+                if not frame is None:
+                    res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
+                    x, y = res
+                    self.et.eye_x_t.append((x, time.time()-self.start))
+            except Exception as e:
+                if not self.et is None: print('could not grab a frame / detect the eye position', e)
+            self.update()
         else:
+            self.close()
             print ('target dynamic :\n', self.stims_X_t)
             print ('eye dynamic :\n', self.et.eye_x_t)
-            self.close()
             
-        try:
-            frame = self.et.cam.grab()
-            if not frame is None:
-                res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
-                x, y = res
-                self.et.eye_x_t = np.append(self.et.eye_x_t, (x, time.time()-self.start))
-        except Exception as e:
-            if not self.et is None: print('could not grab a frame / detect the eye position', e)
-        self.update()
 if __name__ == '__main__':
 
     import cv2

@@ -22,7 +22,7 @@ class Server:
         self.threadn = threadn
         self.cam = PhotoReceptor()
 
-        self.eye_x_t= np.array([])
+        self.eye_x_t=[]
         self.head_size = 486
 
         #self.cascade = face_cascade
@@ -64,7 +64,7 @@ class Server:
                 while len(self.pending) > 0 and self.pending[0].ready():
                     res, t0 = self.pending.popleft().get()
                     x, y = res
-                    self.eye_x_t = np.append(self.eye_x_t, (x, self.clock() - start))
+                    self.eye_x_t.append((x, self.clock() - start))
                 if len(self.pending) < self.threadn:
                     frame = self.cam.grab()
                     if not frame is None:
@@ -74,7 +74,7 @@ class Server:
                 frame = self.cam.grab()
                 res, t0 = self.process_frame(frame.copy(), self.clock())
                 x, y = res
-                self.eye_x_t = np.append(self.eye_x_t, (x, self.clock() - start))
+                self.eye_x_t.append((x, self.clock() - start))
 
     def close(self):
         try:
