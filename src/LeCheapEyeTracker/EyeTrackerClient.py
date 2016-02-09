@@ -137,6 +137,10 @@ class Client(app.Canvas):
         self.downscale = downscale
         self.et = et
         self.timeline = timeline
+
+        img0 = np.zeros((self.window_h, self.window_w, 3)).astype(np.uint8)
+
+       
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', size=(1280, 720))
         self.fullscreen = True
@@ -166,6 +170,10 @@ class Client(app.Canvas):
         if time.time()-self.start < self.timeline.max():
             image, x = self.stimulation.get_stimulus(t0 = self.start, t = time.time())
             self.stims_X_t.append((x, time.time()-self.start))
+            #feedback cross
+            #with_cross = image.copy()
+            #with_cross = cv2.line(img, self.compute_pos((0.470, 0.5)), self.compute_pos((0.530, 0.5)), (255, 255, 255), 2)
+            #with_cross = cv2.line(img, self.compute_pos((0.5, 0.45)), self.compute_pos((0.5, 0.55)), (255, 255, 255), 2)
             self.program['texture'][...] = image.astype(np.uint8).reshape((self.height//self.downscale, self.width//self.downscale, 3))
             try:
                 frame = self.et.cam.grab()
