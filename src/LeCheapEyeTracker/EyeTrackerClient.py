@@ -28,7 +28,7 @@ class Stimulation(object):
 
 #----Public methods----
 
-    def __init__(self, window_w, window_h, stim_type = 'calibration'):
+    def __init__(self, window_w, window_h, stim_type = 'calibration_horizontal'):
         self.stim_type = stim_type
         self.window_h = window_h
         self.window_w = window_w
@@ -69,6 +69,11 @@ class Stimulation(object):
             self.tabPos = [(0.5, 0.5), (0.5, 0.2), (0.33, 0.5), (0.5, 0.5), (0.5, 0.8), (0.67, 0.5), (0.5, 0.5)]
             #self.tabPos = [(0.5, 0.5), (0.5, 0.1), (0.1, 0.5), (0.5, 0.5), (0.5, 0.9), (0.9, 0.5), (0.5, 0.5)]
             self.transition_lag = 1 # how long (in seconds) a calibration dot is shown
+            self.stimulus = 'target'
+        elif self.stim_type == 'calibration_horizontal':
+            self.duration = 9
+            self.tabPos = [(0.5, 0.5), (0.67, 0.5), (0.33, 0.5), (0.67, 0.5), (0.5, 0.5), (0.67, 0.5), (0.33, 0.5), (0.5, 0.5), (0.33, 0.5)]
+            self.transition_lag = 1
             self.stimulus = 'target'
         else :
             print ("This type of stimulation is not implemented for the moment")
@@ -128,7 +133,7 @@ class Client(app.Canvas):
     The client initializes and updates the display where stimulations and
     camera take will occur.
     """
-    def __init__(self, et, timeline, downscale, stim_type='calibration'):
+    def __init__(self, et, timeline, downscale, stim_type='calibration_horizontal'):
         self.downscale = downscale
         self.et = et
         self.timeline = timeline
