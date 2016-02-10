@@ -13,19 +13,19 @@ import cv2
 from openRetina import PhotoReceptor
 from multiprocessing.pool import ThreadPool
 from collections import deque
-from .constants import *
+from .constants import eye_image, face_cascade
 #from constants import *
 
 class Server:
-    def __init__(self, threadn=0):
+    def __init__(self, threadn=1):
         import cv2
         self.threadn = threadn
-        self.cam = PhotoReceptor()
+        self.cam = None
 
-        self.eye_x_t=[]
+        self.eye_x_t = []
         self.head_size = 486
 
-        #self.cascade = face_cascade
+        #self.cascade = face_cascade # TODO : fix the import
         self.cascade = cv2.CascadeClassifier('/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
         self.eye_template = eye_image
         #print(eye_image.shape)
@@ -43,6 +43,7 @@ class Server:
     def get_just_one(self, image, MinNeighbors=20, scale=1.1):
         features, minNeighbors = [], 1
         while len(features) == 0 and minNeighbors<MinNeighbors:
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             features = self.cascade.detectMultiScale(image, scale, minNeighbors=MinNeighbors)
             minNeighbors += 1
         return features[0], minNeighbors
@@ -54,15 +55,17 @@ class Server:
         img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-        return (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
+        return img_face, (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
 
     def run(self, T=10):
+        if self.cam is None: self.cam = PhotoReceptor()
+
         start = self.clock()
-        self.init__threads()
+        if self.threadn > 1: self.init__threads()
         while self.clock()-start <T:
             if self.threadn > 1:
                 while len(self.pending) > 0 and self.pending[0].ready():
-                    res, t0 = self.pending.popleft().get()
+                    img_face, res, t0 = self.pending.popleft().get()
                     x, y = res
                     self.eye_x_t.append((x, self.clock() - start))
                 if len(self.pending) < self.threadn:
@@ -72,7 +75,7 @@ class Server:
                         self.pending.append(task)
             else:
                 frame = self.cam.grab()
-                res, t0 = self.process_frame(frame.copy(), self.clock())
+                img_face, res, t0 = self.process_frame(frame.copy(), self.clock())
                 x, y = res
                 self.eye_x_t.append((x, self.clock() - start))
 
