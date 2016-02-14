@@ -133,7 +133,7 @@ class Client(app.Canvas):
     The client initializes and updates the display where stimulations and
     camera take will occur.
     """
-    def __init__(self, et, timeline, downscale, stim_type='calibration_horizontal'):
+    def __init__(self, et, timeline, downscale=1, stim_type='calibration_horizontal'):
         self.downscale = downscale
         self.et = et
         self.timeline = timeline

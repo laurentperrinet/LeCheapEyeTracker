@@ -27,6 +27,7 @@ class Server:
 
         #self.cascade = face_cascade # TODO : fix the import
         self.cascade = cv2.CascadeClassifier('/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
+        
         self.eye_template = eye_image
         #print(eye_image.shape)
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
@@ -41,9 +42,9 @@ class Server:
         return cv2.getTickCount() / cv2.getTickFrequency()
 
     def get_just_one(self, image, MinNeighbors=20, scale=1.1):
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         features, minNeighbors = [], 1
         while len(features) == 0 and minNeighbors<MinNeighbors:
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             features = self.cascade.detectMultiScale(image, scale, minNeighbors=MinNeighbors)
             minNeighbors += 1
         return features[0], minNeighbors
