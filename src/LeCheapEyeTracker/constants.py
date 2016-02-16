@@ -1,7 +1,10 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 import cv2
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+print(os.path.join(BASE_DIR, 'haarcascade_frontalface_default.xml'))
+face_cascade = cv2.CascadeClassifier(os.path.join(BASE_DIR, 'haarcascade_frontalface_default.xml'))
 
 import base64, imageio
 

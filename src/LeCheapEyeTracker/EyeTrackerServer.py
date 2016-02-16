@@ -14,7 +14,6 @@ from openRetina import PhotoReceptor
 from multiprocessing.pool import ThreadPool
 from collections import deque
 from .constants import eye_image, face_cascade
-#from constants import *
 
 class Server:
     def __init__(self, threadn=1):
@@ -25,11 +24,8 @@ class Server:
         self.eye_x_t = []
         self.head_size = 486
 
-        #self.cascade = face_cascade # TODO : fix the import
-        self.cascade = cv2.CascadeClassifier('/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
-        
+        self.cascade = face_cascade 
         self.eye_template = eye_image
-        #print(eye_image.shape)
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
     def init__threads(self):
