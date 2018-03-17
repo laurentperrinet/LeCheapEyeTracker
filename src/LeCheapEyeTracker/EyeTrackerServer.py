@@ -20,11 +20,12 @@ class Server:
         import cv2
         self.threadn = threadn
         self.cam = None
+        if self.cam is None: self.cam = PhotoReceptor(w=640, h=480)
 
         self.eye_x_t = []
         self.head_size = 486
 
-        self.cascade = face_cascade 
+        self.cascade = face_cascade
         self.eye_template = eye_image
         self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
@@ -55,7 +56,6 @@ class Server:
         return img_face, (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
 
     def run(self, T=10):
-        if self.cam is None: self.cam = PhotoReceptor()
 
         start = self.clock()
         if self.threadn > 1: self.init__threads()
@@ -89,5 +89,3 @@ if __name__ == '__main__':
     cam = Server()
     ctime = cam.run()
     cam.close()
-
-
