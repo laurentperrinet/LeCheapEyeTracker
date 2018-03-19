@@ -46,11 +46,16 @@ class Server:
             minNeighbors += 1
         return features[0], minNeighbors
 
-    def process_frame(self, frame, t0):
+    def crop_face(self, frame, x, y, w, h):
         (x, y, w, h), minNeighbors = self.get_just_one(frame)
         half_w, quarter_w = w//2, w//4
         img_face = frame[(y+quarter_w):(y+quarter_w+half_w), x:x+half_w]
         img_face = cv2.resize(img_face, (self.head_size//2, self.head_size//2))
+        return img_face
+
+    def process_frame(self, frame, t0):
+        (x, y, w, h), minNeighbors = self.get_just_one(frame)
+        img_face = self.crop_face(self, frame, x, y, w, h)
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return img_face, (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
