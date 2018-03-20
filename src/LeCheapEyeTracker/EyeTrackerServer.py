@@ -55,7 +55,7 @@ class Server:
 
     def process_frame(self, frame, t0):
         (x, y, w, h), minNeighbors = self.get_just_one(frame)
-        img_face = self.crop_face(self, frame, x, y, w, h)
+        img_face = self.crop_face(frame, x, y, w, h)
         res = cv2.matchTemplate(img_face, self.eye_template, cv2.TM_CCOEFF)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         return img_face, (max_loc[0] + self.wt/2, max_loc[1] + self.ht/2), t0
