@@ -11,8 +11,6 @@ import numpy as np
 import cv2
 
 from openRetina import PhotoReceptor
-from multiprocessing.pool import ThreadPool
-from collections import deque
 from .constants import eye_image, face_cascade
 
 class Server:
@@ -31,8 +29,10 @@ class Server:
 
     def init__threads(self):
         if self.threadn == 0 :
+            from multiprocessing.pool import ThreadPool
             self.threadn = cv2.getNumberOfCPUs()
             self.pool = ThreadPool(processes = self.threadn)
+            from collections import deque
             self.pending = deque()
 
     def clock(self):
@@ -44,6 +44,7 @@ class Server:
         while len(features) == 0 and minNeighbors<MinNeighbors:
             features = self.cascade.detectMultiScale(image, scale, minNeighbors=MinNeighbors)
             minNeighbors += 1
+        #print(features, minNeighbors)
         return features[0], minNeighbors
 
     def crop_face(self, frame, x, y, w, h):
