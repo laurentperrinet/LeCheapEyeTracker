@@ -12,7 +12,6 @@ import cv2
 
 from openRetina import PhotoReceptor
 
-
 class FaceExtractor:
     def __init__(self):
 

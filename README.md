@@ -18,10 +18,10 @@ For more information on how to install and use, see the ``dev`` folder.
 This algorithm will be presented in the following paper:
 
 ~~~~{.bibtex}
-@techreport{Perrinet16LeCheapEyeTracker,
+@techreport{Perrinet18LeCheapEyeTracker,
     author = {Perrinet, Laurent U.},
     title = {LeCheapEyeTracker},
-    year = {2016}
+    year = {2018}
 }
 ~~~~
 
