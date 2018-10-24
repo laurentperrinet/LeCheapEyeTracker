@@ -107,7 +107,25 @@ class Stimulation(object):
         return (posX, posY)
 
 #---------------------------------------------------------------------------
-from .constants import vertex, fragment
+vertex = """
+    attribute vec2 position;
+    attribute vec2 textcoord;
+    varying vec2 v_texcoord;
+    void main()
+    {
+        gl_Position = vec4(position, 0.0, 1.0);
+        v_texcoord = texcoord;
+    }
+"""
+
+fragment = """
+    uniform sampler2D texture;
+    varying vec2 texcoord;
+    void main()
+    {
+        gl_Fragcolor = texture2D(texture, v_texcoord);
+    }
+"""
 
 class Client(app.Canvas):
     """
@@ -118,9 +136,6 @@ class Client(app.Canvas):
         self.downscale = downscale
         self.et = et
         self.timeline = timeline
-
-        img0 = np.zeros((self.window_h, self.window_w, 3)).astype(np.uint8)
-
 
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', size=(1280, 720))
@@ -136,6 +151,7 @@ class Client(app.Canvas):
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
         self.stims_X_t = []
+        self.eye_x_t = []
         self.native.set_mouse_visible(False)
         self.show()
 
@@ -159,9 +175,9 @@ class Client(app.Canvas):
             try:
                 frame = self.et.cam.grab()
                 if not frame is None:
-                    res, t0 = self.et.process_frame(frame.copy(), self.et.clock())
-                    x, y = res
-                    self.et.eye_x_t.append((x, time.time()-self.start))
+                    img_face = self.et.F.face_extractor(frame[:, :, ::-1])
+                    pred = 'DEBUG' #self.ml.classify(img_face, ml.dataset.test_transform)
+                    self.eye_x_t.append((pred, time.time() - start))
             except Exception as e:
                 if not self.et is None: print('could not grab a frame / detect the eye position', e)
             self.update()
