@@ -107,26 +107,7 @@ class Stimulation(object):
         return (posX, posY)
 
 #---------------------------------------------------------------------------
-# TODO import these from constants.py
-vertex = """
-    attribute vec2 position;
-    attribute vec2 texcoord;
-    varying vec2 v_texcoord;
-    void main()
-    {
-        gl_Position = vec4(position, 0.0, 1.0);
-        v_texcoord = texcoord;
-    }
-"""
-
-fragment = """
-    uniform sampler2D texture;
-    varying vec2 v_texcoord;
-    void main()
-    {
-        gl_FragColor = texture2D(texture, v_texcoord);
-    }
-"""
+from .constants import vertex, fragment
 
 class Client(app.Canvas):
     """
@@ -140,7 +121,7 @@ class Client(app.Canvas):
 
         img0 = np.zeros((self.window_h, self.window_w, 3)).astype(np.uint8)
 
-       
+
         app.use_app('pyglet')
         app.Canvas.__init__(self, keys='interactive', size=(1280, 720))
         self.fullscreen = True
@@ -188,7 +169,7 @@ class Client(app.Canvas):
             self.close()
             print ('target dynamic :\n', self.stims_X_t)
             print ('eye dynamic :\n', self.et.eye_x_t)
-            
+
 if __name__ == '__main__':
 
     import cv2
@@ -200,4 +181,3 @@ if __name__ == '__main__':
     screen = Client(et=Server(), timeline=np.linspace(0, T, T*fps), downscale=2)
     screen.app.run()
     screen.et.close()
-

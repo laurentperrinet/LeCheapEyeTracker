@@ -11,7 +11,6 @@ import numpy as np
 import cv2
 
 from openRetina import PhotoReceptor
-from .constants import eye_image, face_cascade
 
 class Server:
     def __init__(self, threadn=1):
@@ -22,10 +21,6 @@ class Server:
 
         self.eye_x_t = []
         self.head_size = 486
-
-        self.cascade = face_cascade
-        self.eye_template = eye_image
-        self.wt, self.ht = self.eye_template.shape[1], self.eye_template.shape[0]
 
     def init__threads(self):
         if self.threadn == 0 :
@@ -42,6 +37,7 @@ class Server:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         features, minNeighbors = [], 1
         while len(features) == 0 and minNeighbors<MinNeighbors:
+            # TODO: use dlib
             features = self.cascade.detectMultiScale(image, scale, minNeighbors=MinNeighbors)
             minNeighbors += 1
         #print(features, minNeighbors)
