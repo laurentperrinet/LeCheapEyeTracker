@@ -26,8 +26,6 @@ class Stimulation(object):
 
     """
 
-#----Public methods----
-
     def __init__(self, window_w, window_h, stim_type = 'calibration_horizontal'):
         self.stim_type = stim_type
         self.window_h = window_h
@@ -56,8 +54,6 @@ class Stimulation(object):
         i = int((t-t0)//self.transition_lag)
         stim_x, stim_y = self.tabPos[i]
         return self.draw_stimulus((stim_x, stim_y)), stim_x
-
-#----Privates methods-----
 
     def stim_details(self):
         """
@@ -107,25 +103,25 @@ class Stimulation(object):
         return (posX, posY)
 
 #---------------------------------------------------------------------------
+
 vertex = """
     attribute vec2 position;
-    attribute vec2 textcoord;
+    attribute vec2 texcoord;
     varying vec2 v_texcoord;
     void main()
     {
         gl_Position = vec4(position, 0.0, 1.0);
         v_texcoord = texcoord;
-    }
-"""
+    } """
 
 fragment = """
     uniform sampler2D texture;
-    varying vec2 texcoord;
+    varying vec2 v_texcoord;
     void main()
     {
-        gl_Fragcolor = texture2D(texture, v_texcoord);
-    }
-"""
+        gl_FragColor = texture2D(texture, v_texcoord);
+    } """
+
 
 class Client(app.Canvas):
     """
@@ -146,7 +142,7 @@ class Client(app.Canvas):
         self.program = gloo.Program(vertex, fragment, count=4)
         self.program['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['texcoord'] = [(1, 1), (1, 0), (0, 1), (0, 0)]
-        self.program['texture'] = np.zeros((self.height//downscale, self.width//downscale, 3)).astype(np.uint8)
+        self.program['texture'] = (255*np.random.rand(self.height//downscale, self.width//downscale, 3)).astype(np.uint8)
         gloo.set_viewport(0, 0, self.width, self.height)
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.start = time.time()
