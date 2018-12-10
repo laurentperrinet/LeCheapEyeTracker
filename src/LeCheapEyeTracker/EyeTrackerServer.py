@@ -8,11 +8,6 @@ The server side.
 
 import time
 import numpy as np
-<<<<<<< HEAD
-# import cv2
-=======
->>>>>>> 8bad458882e4c62b49fa4bc3e129b40738a82d59
-
 
 class FaceExtractor:
     def __init__(self):
