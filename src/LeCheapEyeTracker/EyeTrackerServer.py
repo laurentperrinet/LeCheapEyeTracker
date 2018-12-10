@@ -8,7 +8,7 @@ The server side.
 
 import time
 import numpy as np
-import cv2
+# import cv2
 
 from openRetina import PhotoReceptor
 

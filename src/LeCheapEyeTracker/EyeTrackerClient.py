@@ -8,7 +8,6 @@ The client side.
 
 import numpy as np
 import time
-import cv2
 
 # VISUALIZATION ROUTINES
 from vispy import app
@@ -84,6 +83,7 @@ class Stimulation(object):
 
         #fixation cross
         img = img0.copy()
+        import cv2
         img = cv2.line(img, self.compute_pos((0.470, 0.5)), self.compute_pos((0.530, 0.5)), (255, 255, 255), 2)
         img = cv2.line(img, self.compute_pos((0.5, 0.45)), self.compute_pos((0.5, 0.55)), (255, 255, 255), 2)
 
@@ -184,7 +184,6 @@ class Client(app.Canvas):
 
 if __name__ == '__main__':
 
-    import cv2
     import numpy as np
     from LeCheapEyeTracker import Server
 
