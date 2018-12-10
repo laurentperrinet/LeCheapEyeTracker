@@ -8,9 +8,11 @@ The server side.
 
 import time
 import numpy as np
+<<<<<<< HEAD
 # import cv2
+=======
+>>>>>>> 8bad458882e4c62b49fa4bc3e129b40738a82d59
 
-from openRetina import PhotoReceptor
 
 class FaceExtractor:
     def __init__(self):
@@ -48,6 +50,7 @@ class Server:
         import cv2
         self.threadn = threadn
         self.cam = None
+        from openRetina import PhotoReceptor
         if self.cam is None: self.cam = PhotoReceptor(w=w, h=h)
 
         self.eye_x_t = []
