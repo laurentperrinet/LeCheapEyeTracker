@@ -40,9 +40,9 @@ class FaceExtractor:
         face = frame[t:b, l:r, :]
         return face
 
+import cv2
 class Server:
     def __init__(self, w=640, h=480, threadn=1):
-        import cv2
         self.threadn = threadn
         self.cam = None
         from openRetina import PhotoReceptor
